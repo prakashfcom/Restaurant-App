@@ -1,0 +1,94 @@
+import React from 'react'
+import { useState } from 'react'
+import Header from '../layouts/Header';
+import Sidebar from '../layouts/Sidebar';
+import Footer from '../layouts/Footer';
+import axios from "axios";
+import { redirect, useNavigate } from "react-router-dom";
+
+const AddVat =() =>{
+
+    const [values,setValues] = useState({
+
+        vatname :'',
+        percentage:'',
+       
+
+    })
+    const navigate = useNavigate();
+    const handleSubmit =(event) =>{
+
+        event.preventDefault();
+        axios.post('http://localhost:5000/api/vat/createvat',values)
+        .then(res =>{
+
+            console.log(res);
+            navigate('/viewVat');
+        })
+        .catch(err =>console.log(err));
+    }
+
+    return (
+        <div className="container-scroller">
+        <Header />
+        <div className="container-fluid page-body-wrapper">
+            <Sidebar />
+            <div className="main-panel">
+            <div className="content-wrapper">
+            <div className="page-header">
+              <h3 className="page-title"> Add Vat </h3>
+              <nav aria-label="breadcrumb">
+                <ol className="breadcrumb">
+                  <li className="breadcrumb-item"><a href="#">Food</a></li>
+                  <li className="breadcrumb-item active" aria-current="page">Add Vat</li>
+                </ol>
+              </nav>
+            </div>
+            <div className="row">
+       
+              <div className="col-md-12 grid-margin stretch-card">
+                <div className="card">
+                  <div className="card-body">
+                  
+                    <form className="forms-sample" onSubmit={handleSubmit} >
+                        <div className="row">
+                          
+                            <div className="form-group row">
+                        <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Vat Name</label>
+                        <div className="col-sm-9">
+                          <input type="text" className="form-control" name="vatname" id="exampleInputUsername2" onChange={e =>setValues({...values, vatname: e.target.value})} placeholder="Food Description" />
+                        </div>
+                      </div>
+
+                      <div className="form-group row">
+                        <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Percentage</label>
+                        <div className="col-sm-9">
+                          <input type="text" className="form-control" name="percentage" id="exampleInputUsername2" onChange={e =>setValues({...values, percentage: e.target.value})} placeholder="Food Category" />
+                        </div>
+                      </div>
+                      
+                    
+                           
+                      
+                        </div>
+                   
+                      <button type="submit" className="btn btn-gradient-primary me-2">Submit</button>
+                     
+                    </form>
+                  </div>
+                </div>
+              </div>
+ 
+   
+
+      
+            </div>
+          </div>
+                    <Footer />
+            </div>
+        </div>
+    </div>
+    )
+}
+
+export default AddVat;
