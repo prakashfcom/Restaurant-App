@@ -197,3 +197,9 @@ a.nav-link.nav-link-waiter.active img{
 @media (max-width: 767px) {
     
 }
+
+.error
+{
+    color: red;
+    font-size: 13px;
+}

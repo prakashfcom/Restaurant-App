@@ -15,8 +15,8 @@ const AddFoodMenu =() =>{
     
 
 //Fetch from food Category
-const [categories, setFoodcategory] = useState([]);
-const [category, setSelectedCategory] = useState('');
+const [foodCategory, setFoodcategory] = useState([]);
+const [selectedCategory, setSelectedCategory] = useState('');
   useEffect(() => {
    
     axios.get('http://localhost:5000/api/foodmenu/foodcategory')
@@ -33,10 +33,12 @@ const [category, setSelectedCategory] = useState('');
       });
   }, []);
 
-  const handleCategoryChange = (select) => {
-   const svat = setSelectedCategory(select);
- //  alert({svat});
+  const handleCategoryChange = (event) => {
+    console.log(event.value);
+    setSelectedCategory(event);
+ /// alert({svat});
   }
+ // console.log(selectedCategory.value);
 //fetch Ingredients
   const [units, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState([]);
@@ -60,6 +62,7 @@ useEffect(() => {
 
 
 const handleSelectChange = (selected) => {
+ // console.log(selected)
     setSelectedOptions(selected);
    
   };
@@ -83,8 +86,8 @@ const handleSelectChange = (selected) => {
 
   },[]);
 
-  const handleVatChange = (select) => {
-    const svat = setSelectVat(select);
+  const handleVatChange = (event) => {
+    const svat = setSelectVat(event);
   //  alert({svat});
    }
 
@@ -130,17 +133,20 @@ const handleSelectChange = (selected) => {
     { value: 'no', label: 'No' },
    
   ];
-
+  const navigate = useNavigate();
   const handleSubmit =(event) =>{
     event.preventDefault();
 
-    axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu',{ foodmenuname,category, selectedOptions,salesprice,vegs,Beverages,bars,description })
-    .then(res =>{
+    const selected = this.selectedOptions.selected;
+    console.log(selected);
 
-        console.log(res);
-        navigate('/viewingredients');
-    })
-    .catch(err =>console.log(err));
+    // axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu',{ foodmenuname,category: selectedCategory, selectedOptions,salesprice,vegs,Beverages,bars,description })
+    // .then(res =>{
+
+    //     console.log(res);
+    //     navigate('/viewingredients');
+    // })
+    // .catch(err =>console.log(err));
 
   }
 
@@ -179,9 +185,9 @@ const handleSelectChange = (selected) => {
                                  ))}
                         </select> */}
                                            <Select
-      options={categories}
+      options={foodCategory}
     
-      value={category}
+      value={selectedCategory}
       onChange={handleCategoryChange}
       // Additional props for styling and behavior
     />

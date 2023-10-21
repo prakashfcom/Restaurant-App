@@ -46,7 +46,7 @@ const ViewCategory =() =>{
                   <div className="card-body">
                     <h4 className="card-title">Food Category List</h4>
                     <div className="d-flex justify-content-end">
-                    <Link to="/addfoodcategory" className="btn btn-success">Add +</Link>
+                    <Link to="/addingredientfoodcategory" className="btn btn-success">Add +</Link>
                 </div>
                   
                     <table className="table table-hover">

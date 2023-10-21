@@ -6,6 +6,7 @@ const dotenv =require('dotenv').config();
 const cors =require('cors');
 const morgan =require('morgan');
 const cookieParser =require('cookie-parser');
+//const bodyParser = require("body-parser");
 
 //Routes
 
@@ -23,8 +24,8 @@ const PORT =process.env.PORT || 4000;
 dbConnect();
 app.use(cors());
 app.use(express.json());
-//app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use('/api/user',authRouter);
 app.use('/api/category',categoryRouter);
@@ -42,5 +43,4 @@ app.use(cookieParser());
 
 
 app.listen(PORT,() =>{
-    console.log(`Server is running Port ${PORT}`);
 });

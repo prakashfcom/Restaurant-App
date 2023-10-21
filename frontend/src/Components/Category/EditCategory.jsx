@@ -69,14 +69,14 @@ const EditCategory =() =>{
                         <div className="row">
                           
                             <div className="form-group row">
-                        <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category</label>
+                        <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category</label>
                         <div className="col-sm-9">
                           <input type="text" value={categoryname} onChange={(e)=>setCategoryName(e.target.value)} className="form-control"  name="categoryname" id="exampleInputUsername2"  placeholder="Food Description" />
                         </div>
                       </div>
 
                       <div className="form-group row">
-                        <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Description</label>
+                        <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food Description</label>
                         <div className="col-sm-9">
                           <input type="text" value={description} onChange={(e)=>setDescription(e.target.value)} className="form-control"  name="description" id="exampleInputUsername2" placeholder="Food Category" />
                         </div>

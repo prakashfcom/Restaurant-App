@@ -18,10 +18,13 @@ const AddWaiter =() =>{
        
 
     })
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const handleSubmit =(event) =>{
 
         event.preventDefault();
+        const validationErrors = validateForm(values);
+        if (Object.keys(validationErrors).length === 0) {
         axios.post('http://localhost:5000/api/waiter/createwaiter',values)
         .then(res =>{
 
@@ -29,7 +32,35 @@ const AddWaiter =() =>{
             navigate('/viewWaiter');
         })
         .catch(err =>console.log(err));
+      }
+      else {
+        // Set validation errors
+        setErrors(validationErrors);
+      }
     }
+
+
+    const validateForm = (data) => {
+      let errors = {};
+  
+      if (!data.waitername) {
+        errors.waitername = "Waiter Name is required";
+      }
+
+      if (!data.designation) {
+        errors.designation = "Designation is required";
+      }
+
+      if (!data.mobile) {
+        errors.mobile = "Mobile Number is required";
+      } else if (!/^\d+$/.test(data.mobile)) {
+        errors.mobile = "Only numbers are allowed in the mobile number field";
+      }
+  
+     
+      return errors;
+    };
+
 
     return (
         <div className="container-scroller">
@@ -60,6 +91,7 @@ const AddWaiter =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Name</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="waitername" id="exampleInputUsername2" onChange={e =>setValues({...values, waitername: e.target.value})} placeholder="Employee Name" />
+                          {errors.waitername && <span className="error">{errors.waitername}</span>}
                         </div>
                       </div>
 
@@ -67,6 +99,7 @@ const AddWaiter =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Designation</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="designation" id="exampleInputUsername2" onChange={e =>setValues({...values, designation: e.target.value})} placeholder="Posistion" />
+                          {errors.designation && <span className="error">{errors.designation}</span>}
                         </div>
                       </div>
 
@@ -74,6 +107,7 @@ const AddWaiter =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Mobile Number</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="mobile" id="exampleInputUsername2" onChange={e =>setValues({...values, mobile: e.target.value})} placeholder="Mobile Number" />
+                          {errors.mobile && <span className="error">{errors.mobile}</span>}
                         </div>
                       </div>
 

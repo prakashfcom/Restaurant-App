@@ -15,10 +15,13 @@ const AddFoodCategory =() =>{
        
 
     })
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const handleSubmit =(event) =>{
 
         event.preventDefault();
+        const validationErrors = validateForm(values);
+        if (Object.keys(validationErrors).length === 0) {
         axios.post('http://localhost:5000/api/foodcategory/createfoodcategory',values)
         .then(res =>{
 
@@ -26,7 +29,25 @@ const AddFoodCategory =() =>{
             navigate('/viewfoodcategory');
         })
         .catch(err =>console.log(err));
+      }
+      else {
+        // Set validation errors
+        setErrors(validationErrors);
+      }
+
+
     }
+
+    const validateForm = (data) => {
+      let errors = {};
+  
+      if (!data.foodcategoryname) {
+        errors.foodcategoryname = "Food Category Name is required";
+      }
+  
+     
+      return errors;
+    };
 
     return (
         <div className="container-scroller">
@@ -57,6 +78,7 @@ const AddFoodCategory =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category Name</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="foodcategoryname" id="exampleInputUsername2" onChange={e =>setValues({...values, foodcategoryname: e.target.value})} placeholder="Food Description" />
+                          {errors.foodcategoryname && <span className="error">{errors.foodcategoryname}</span>}
                         </div>
                       </div>
 

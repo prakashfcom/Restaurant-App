@@ -49,11 +49,11 @@ const EditIngredientUnit =() =>{
             <div class="main-panel">
             <div className="content-wrapper">
             <div className="page-header">
-              <h3 className="page-title"> Food Category </h3>
+              <h3 className="page-title"> Ingrdient Unit </h3>
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                   <li className="breadcrumb-item"><a href="#">Food</a></li>
-                  <li className="breadcrumb-item active" aria-current="page">Add Food Category</li>
+                  <li className="breadcrumb-item active" aria-current="page">Edit Ingredient Unit</li>
                 </ol>
               </nav>
             </div>
@@ -74,7 +74,7 @@ const EditIngredientUnit =() =>{
                       </div>
 
                       <div className="form-group row">
-                        <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food Description</label>
+                        <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label"> Description</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="description" id="exampleInputUsername2" value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="Food Category" />
                         </div>

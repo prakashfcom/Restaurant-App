@@ -5,48 +5,26 @@ var foodmenuSchema = new mongoose.Schema({
     foodmenuname:{
         type:String,
         required:true,
-        unique:true,
         index:true,
-    },
-    foodcategory:{
-        type:String,
-       
-      
-    },
-   foodingredient :{
-        type:String,
-      
+unique:true,
+sparse:true
        
     },
+    foodcategory:[],
+   foodingredient :[],
     salesprice:{
         type:String,
       
     },
-    vat:
-    {
-        type:String,
-      
-    },
+    vat:[],
     description:
     {
         type:String,
         
     },
-    vegitem:
-    {
-        type:String,
-       
-    },
-    beverage:
-    {
-        type:String,
-       
-    },
-    bar:
-    {
-        type:String,
-       
-    },
+    vegitem:[],
+    beverage:[],
+    bar:[],
     photo:{
         type:String,
        

@@ -15,10 +15,13 @@ const AddVat =() =>{
        
 
     })
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const handleSubmit =(event) =>{
 
         event.preventDefault();
+        const validationErrors = validateForm(values);
+        if (Object.keys(validationErrors).length === 0) {
         axios.post('http://localhost:5000/api/vat/createvat',values)
         .then(res =>{
 
@@ -26,7 +29,29 @@ const AddVat =() =>{
             navigate('/viewVat');
         })
         .catch(err =>console.log(err));
+      }
+      else {
+        // Set validation errors
+        setErrors(validationErrors);
+      }
+
     }
+
+
+    const validateForm = (data) => {
+      let errors = {};
+  
+      if (!data.vatname) {
+        errors.vatname = "Vat Name is required";
+      }
+
+      if (!data.percentage) {
+        errors.percentage = "Vat Percentage is required";
+      }
+  
+     
+      return errors;
+    };
 
     return (
         <div className="container-scroller">
@@ -57,6 +82,7 @@ const AddVat =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Vat Name</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="vatname" id="exampleInputUsername2" onChange={e =>setValues({...values, vatname: e.target.value})} placeholder="Food Description" />
+                          {errors.vatname && <span className="error">{errors.vatname}</span>}
                         </div>
                       </div>
 
@@ -64,6 +90,7 @@ const AddVat =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Percentage</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="percentage" id="exampleInputUsername2" onChange={e =>setValues({...values, percentage: e.target.value})} placeholder="Food Category" />
+                          {errors.percentage && <span className="error">{errors.percentage}</span>}
                         </div>
                       </div>
                       

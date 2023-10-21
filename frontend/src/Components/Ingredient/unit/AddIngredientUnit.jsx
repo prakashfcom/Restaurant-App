@@ -17,10 +17,13 @@ const AddIngredientUnit =() =>{
        
 
     })
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const handleSubmit =(event) =>{
 
         event.preventDefault();
+        const validationErrors = validateForm(values);
+        if (Object.keys(validationErrors).length === 0) {
         axios.post('http://localhost:5000/api/ingunit/createingunit',values)
         .then(res =>{
 
@@ -28,7 +31,24 @@ const AddIngredientUnit =() =>{
             navigate('/viewingredientunit');
         })
         .catch(err =>console.log(err));
+      }
+      else {
+        // Set validation errors
+        setErrors(validationErrors);
+      }
+
     }
+
+    const validateForm = (data) => {
+      let errors = {};
+  
+      if (!data.unitname) {
+        errors.unitname = "Ingredient Unit is required";
+      }
+  
+     
+      return errors;
+    };
     return (
         <div class="container-scroller">
         <Header />
@@ -37,11 +57,11 @@ const AddIngredientUnit =() =>{
             <div class="main-panel">
             <div className="content-wrapper">
             <div className="page-header">
-              <h3 className="page-title"> Food Category </h3>
+              <h3 className="page-title"> Ingredient Unit </h3>
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                   <li className="breadcrumb-item"><a href="#">Food</a></li>
-                  <li className="breadcrumb-item active" aria-current="page">Add Food Category</li>
+                  <li className="breadcrumb-item active" aria-current="page">Add Ingredient Unit</li>
                 </ol>
               </nav>
             </div>
@@ -57,14 +77,15 @@ const AddIngredientUnit =() =>{
                             <div className="form-group row">
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Intgredient Unit</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" name="unitname" id="exampleInputUsername2" onChange={e =>setValues({...values, unitname: e.target.value})} placeholder="Food Description" />
+                          <input type="text" className="form-control" name="unitname" id="exampleInputUsername2" onChange={e =>setValues({...values, unitname: e.target.value})} placeholder="Ingredient Unit " />
+                          {errors.unitname && <span className="error">{errors.unitname}</span>}
                         </div>
                       </div>
 
                       <div className="form-group row">
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Description</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" name="description" id="exampleInputUsername2" onChange={e =>setValues({...values, description: e.target.value})} placeholder="Food Category" />
+                          <input type="text" className="form-control" name="description" id="exampleInputUsername2" onChange={e =>setValues({...values, description: e.target.value})} placeholder="Description" />
                         </div>
                       </div>
                       

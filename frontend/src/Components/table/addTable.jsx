@@ -15,10 +15,13 @@ const AddTable =() =>{
        
 
     })
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const handleSubmit =(event) =>{
 
         event.preventDefault();
+        const validationErrors = validateForm(values);
+        if (Object.keys(validationErrors).length === 0) {
         axios.post('http://localhost:5000/api/table/createtable',values)
         .then(res =>{
 
@@ -26,7 +29,32 @@ const AddTable =() =>{
             navigate('/viewTable');
         })
         .catch(err =>console.log(err));
+      }
+      else {
+        // Set validation errors
+        setErrors(validationErrors);
+      }
     }
+    const validateForm = (data) => {
+      let errors = {};
+  
+      if (!data.tablename) {
+        errors.tablename = "Table Name is required";
+      }
+
+      if (!data.Position) {
+        errors.Position = "Posistion is required";
+      }
+
+      if (!data.seatcapacity) {
+        errors.seatcapacity = "Seat Capacity is required";
+      } else if (!/^\d+$/.test(data.mobile)) {
+        errors.seatcapacity = "Only numbers are allowed in the Seat Capacity";
+      }
+  
+     
+      return errors;
+    };
     return (
         <div className="container-scroller">
         <Header />
@@ -56,6 +84,7 @@ const AddTable =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Table Name</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="tablename" id="exampleInputUsername2" onChange={e =>setValues({...values, tablename: e.target.value})} placeholder="Enter Table Tame" />
+                          {errors.tablename && <span className="error">{errors.tablename}</span>}
                         </div>
                       </div>
 
@@ -63,13 +92,15 @@ const AddTable =() =>{
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Position</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="Position" id="exampleInputUsername2" onChange={e =>setValues({...values, Position: e.target.value})} placeholder="Enter Posistion" />
+                          {errors.Position && <span className="error">{errors.Position}</span>}
                         </div>
                       </div>
 
                       <div className="form-group row">
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Seat Capacity</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" name="Position" id="exampleInputUsername2" onChange={e =>setValues({...values, seatcapacity: e.target.value})} placeholder="Enter Seat Capacity" />
+                          <input type="text" className="form-control" name="seatcapacity" id="exampleInputUsername2" onChange={e =>setValues({...values, seatcapacity: e.target.value})} placeholder="Enter Seat Capacity" />
+                          {errors.seatcapacity && <span className="error">{errors.seatcapacity}</span>}
                         </div>
                       </div>
 

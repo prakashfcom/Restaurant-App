@@ -16,24 +16,47 @@ const AddCategory =() =>{
        
 
     })
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const handleSubmit =(event) =>{
 
+      const validationErrors = validateForm(values);
+
+
+
         event.preventDefault();
+        if (Object.keys(validationErrors).length === 0) {
         axios.post('http://localhost:5000/api/category/createcategory',values)
         .then(res =>{
 
             console.log(res);
-            navigate('/viewfoodcategory');
+            navigate('/viewingredientfoodcategory');
         })
         .catch(err =>console.log(err));
+      }
+      else {
+        // Set validation errors
+        setErrors(validationErrors);
+      }
     }
+
+
+    const validateForm = (data) => {
+      let errors = {};
+  
+      if (!data.categoryname) {
+        errors.categoryname = "Category Name is required";
+      }
+  
+     
+      return errors;
+    };
     return (
-        <div class="container-scroller">
+        <div className="container-scroller">
         <Header />
-        <div class="container-fluid page-body-wrapper">
+        <div className="container-fluid page-body-wrapper">
             <Sidebar />
-            <div class="main-panel">
+            <div className="main-panel">
             <div className="content-wrapper">
             <div className="page-header">
               <h3 className="page-title"> Food Category </h3>
@@ -54,14 +77,16 @@ const AddCategory =() =>{
                         <div className="row">
                           
                             <div className="form-group row">
-                        <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category</label>
+                        <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="categoryname" id="exampleInputUsername2" onChange={e =>setValues({...values, categoryname: e.target.value})} placeholder="Food Description" />
+                          {errors.categoryname && <span className="error">{errors.categoryname}</span>}
                         </div>
+                      
                       </div>
 
                       <div className="form-group row">
-                        <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Description</label>
+                        <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food Description</label>
                         <div className="col-sm-9">
                           <input type="text" className="form-control" name="description" id="exampleInputUsername2" onChange={e =>setValues({...values, description: e.target.value})} placeholder="Food Category" />
                         </div>
