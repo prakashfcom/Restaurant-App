@@ -19,6 +19,7 @@ const tableRouter =require('./routes/tableRoutes');
 const foodcategoryRouter =require('./routes/foodcategoryRoutes');
 const foodmenuRouter =require('./routes/foodmenuRoutes');
 const waiterRouter =require('./routes/waiterRoutes');
+const posRouter =require('./routes/posRoutes');
 
 const PORT =process.env.PORT || 4000;
 dbConnect();
@@ -36,6 +37,7 @@ app.use('/api/table',tableRouter);
 app.use('/api/foodcategory',foodcategoryRouter);
 app.use('/api/foodmenu',foodmenuRouter);
 app.use('/api/waiter',waiterRouter);
+app.use('/api/pos',posRouter);
 // app.use('/',(req,res) =>{
 //     res.send("Hellow From Server Side");
 // });

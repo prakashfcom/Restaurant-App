@@ -10,6 +10,19 @@ import { redirect, useNavigate,Link } from "react-router-dom";
 
 const Pos =() =>{
 
+    const [foodCategory, setFoodcategory] = useState([]);
+
+    useEffect(() => {
+     
+      axios.get('http://localhost:5000/api/pos/poscategory')
+      .then((response) => {
+        setFoodcategory(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+
     return (
         <div className="container-scroller">
         <Header />
@@ -158,33 +171,19 @@ const Pos =() =>{
                               <li className="nav-item">
                                   <a className="nav-link active" id="home-tab" data-toggle="tab" href="#Coffe" role="tab" aria-controls="home" aria-selected="true">coffee</a>
                               </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="profile-tab" data-toggle="tab" href="#Tea" role="tab" aria-controls="profile" aria-selected="false">Tea</a>
+                              {
+                        foodCategory.map((pos) =>(
+
+                           
+                                <li className="nav-item">
+                                  <a className="nav-link active" id="home-tab" data-toggle="tab" href="#Coffe" role="tab" aria-controls="home" aria-selected="true">{pos.foodcategoryname}</a>
                               </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Indian" role="tab" aria-controls="contact" aria-selected="false">Indian</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#South-Indian" role="tab" aria-controls="contact" aria-selected="false">South Indian</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Dosa" role="tab" aria-controls="contact" aria-selected="false">Dosa</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Chinese" role="tab" aria-controls="contact" aria-selected="false">Chinese</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Englishbf" role="tab" aria-controls="contact" aria-selected="false">English BF</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Sandwich" role="tab" aria-controls="contact" aria-selected="false">Sandwich</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Burgers" role="tab" aria-controls="contact" aria-selected="false">Burgers</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#Kabayan" role="tab" aria-controls="contact" aria-selected="false">Kabayan</a>
-                              </li>
+
+                           
+
+                        ))
+                    }
+                             
                               </ul>
                       </div>
                    
