@@ -12,7 +12,38 @@ import { redirect, useNavigate } from "react-router-dom";
 const AddFoodMenu =() =>{
 
     
+    
+
+//Fetch from food Category
+const [foodCategory, setFoodcategory] = useState([]);
+const [selectedCategory, setSelectedCategory] = useState('');
   useEffect(() => {
+   
+    axios.get('http://localhost:5000/api/foodmenu/foodcategory')
+      .then(response => {
+      
+        const data = response.data.map(item => ({
+          value: item._id,
+          label: item.foodcategoryname
+        }));
+        setFoodcategory(data);
+      })
+      .catch(error => {
+        console.error('Error fetching data: ', error);
+      });
+  }, []);
+
+  const handleCategoryChange = (event) => {
+    console.log(event.value);
+    setSelectedCategory(event);
+ /// alert({svat});
+  }
+ // console.log(selectedCategory.value);
+//fetch Ingredients
+  const [units, setOptions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
+useEffect(() => {
     // Fetch data from your API here
     axios.get('http://localhost:5000/api/foodmenu/ingredients')
       .then(response => {
@@ -28,122 +59,96 @@ const AddFoodMenu =() =>{
       });
   }, []);
 
-  const [units, setOptions] = useState([]);
 
-  const [foodCategory, setFoodcategory] = useState([]);
 
-  useEffect(() => {
+const handleSelectChange = (selected) => {
+ // console.log(selected)
+    setSelectedOptions(selected);
    
-    axios.get('http://localhost:5000/api/foodmenu/foodcategory')
-    .then((response) => {
-      setFoodcategory(response.data);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}, []);
+  };
+  //Fetch Vat
 
-const handleCategoryChange = (e) => {
-  setSelectedCategory(e.target.value);
-};
+  const [vat,selectVat] = useState([]);
+  const[selvat,setSelectVat] =useState('');
+  useEffect(() =>{
+    axios.get('http://localhost:5000/api/foodmenu/vat')
+    .then(response => {
+        // Assuming your API response is an array of objects with 'value' and 'label' properties
+        const data = response.data.map(item => ({
+          value: item._id,
+          label: item.percentage
+        }));
+        selectVat(data);
+      })
+      .catch(error => {
+        console.error('Error fetching data: ', error);
+      });
 
-const [vat,selectVat] = useState([]);
-  
-useEffect(() =>{
-  axios.get('http://localhost:5000/api/foodmenu/vat')
-  .then((response) => {
-    selectVat(response.data);
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-}, []);
+  },[]);
 
-
-const handleVatChange = (event) => {
-
-  setSelectVat(event.target.value);
-
- }
-
- const Beverage  = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
- 
-];
-
-const veg  = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
- 
-];
-
-const bar  = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
- 
-];
-
-const handleVeg = (event) => {
-  setVeg(event);
-  
-//  alert({svat});
- }
- const handleBeverage = (event) => {
-  setBeverage(event);
-//  alert({svat});
- }
-
- const handleBar = (event) => {
-  setBars(event);
-//  alert({svat});
- }
-
+  const handleVatChange = (event) => {
+    const svat = setSelectVat(event);
+  //  alert({svat});
+   }
 
    const [vegs,setVeg] =useState();
    const [Beverages,setBeverage] =useState();
    const [bars,setBars] =useState();
-   const [foodmenuname,setFoodmenuName] =useState('');
+   const [foodmenuname,setFoodmenuName] =useState();
    const [salesprice,setSalesPrice] =useState()
    const [description,setDescription] =useState()
-   const [foodcategoryId, setSelectedCategory] = useState('');
-   const [selectedValues, setSelectedValues] = useState([]);
-   const[vatId,setSelectVat] =useState('');
 
 
 
 
 
-   const navigate = useNavigate();
-   const handleSubmit =(event) =>{
+
+   const handleVeg = (select) => {
+    const sveg = setVeg(select);
+  //  alert({svat});
+   }
+   const handleBeverage = (select) => {
+    const sbev = setBeverage(select);
+  //  alert({svat});
+   }
+
+   const handleBar = (select) => {
+    const sbar = setBars(select);
+  //  alert({svat});
+   }
+  const veg = [
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+   
+  ];
+
+  const bar = [
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+   
+  ];
+
+  const Beverage  = [
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+   
+  ];
+  const navigate = useNavigate();
+  const handleSubmit =(event) =>{
     event.preventDefault();
 
-   
+    const selected = this.selectedOptions.selected;
+    console.log(selected);
 
-    // axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu', {
-      fetch('http://localhost:5000/api/foodmenu/creatfoodmenu', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({foodmenuname,foodcategoryId,vatId,salesprice,description,vegs,Beverages,bars,foodingredientId: selectedValues.map(units => units.value), })
-    })
-      .then(res => {
-        console.log(res);
-        navigate('/viewfoodmenu');
-      })
-      .catch(err => console.log(err));
-   
-   
-  
+    // axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu',{ foodmenuname,category: selectedCategory, selectedOptions,salesprice,vegs,Beverages,bars,description })
+    // .then(res =>{
 
+    //     console.log(res);
+    //     navigate('/viewingredients');
+    // })
+    // .catch(err =>console.log(err));
 
   }
-
-   
-   
-  
-
-
-  
 
 
     return(
@@ -164,31 +169,28 @@ const handleVeg = (event) => {
                   <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food  Menu Name</label>
                         <div className="col-sm-9">
-                        <input
-      type="text"
-      className="form-control"
-      value={foodmenuname}
-      onChange={event => setFoodmenuName(event.target.value)}
-      name="foodmenuname"
-      id="exampleInputUsername2"
-      placeholder="Food Menu"
-    />
+                          <input type="text" className="form-control" onChange={(e) => {setFoodmenuName(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
                         </div>
                       </div>
 
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category</label>
                         <div className="col-sm-9">
-
-                           <select name="foodcategoryId" className="form-control"  onChange={handleCategoryChange}  value={foodcategoryId}>
+                        {/* <select name="category" className="form-control"  onChange={handleCategoryChange}  value={category}>
                              <option >Select Food Category</option>
-                                 {foodCategory.map((food) => (
-                                  <option key={food._id} value={food._id}>
-                                      {food.foodcategoryname}
+                                 {categories.map((category) => (
+                                  <option key={category._id} value={category._id}>
+                                      {category.foodcategoryname}
                                    </option>
                                  ))}
-                        </select>
-
+                        </select> */}
+                                           <Select
+      options={foodCategory}
+    
+      value={selectedCategory}
+      onChange={handleCategoryChange}
+      // Additional props for styling and behavior
+    />
                         </div>
                       </div>
 
@@ -196,12 +198,20 @@ const handleVeg = (event) => {
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Food ingredient</label>
                         <div className="col-sm-9">
-                       
+                        {/* <select name="category" className="form-control" onChange={handleUnitChange}    value={unit} >
+                           <option>Select Food Ingredient</option>
+                              {units.map((unit) => (
+                                 <option key={unit._id} value={unit._id}>
+                                   {unit.name}
+                                 </option>
+                                 ))}
+                         </select> */}
                       <Select
       options={units}
       isMulti={true} // Enable multi-select
-      value={selectedValues}
-      onChange={selectedOptions => setSelectedValues(selectedOptions)}
+      value={selectedOptions}
+      onChange={handleSelectChange}
+      // Additional props for styling and behavior
     />
 
                        
@@ -212,28 +222,27 @@ const handleVeg = (event) => {
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Sales Price</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" value={salesprice} onChange={(e) => {setSalesPrice(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
+                          <input type="text" className="form-control" onChange={(e) => {setSalesPrice(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
                         </div>
                       </div>
 
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Vat</label>
                         <div className="col-sm-9">
-                        <select name="vatId" className="form-control"  onChange={handleVatChange}  value={vatId}>
-                             <option >Select Vat</option>
-                                 {vat.map((vat) => (
-                                  <option key={vat._id} value={vat._id}>
-                                      {vat.percentage}
-                                   </option>
-                                 ))}
-                        </select>
+                        <Select
+                          options={vat}
+    
+                          value={selvat}
+                           onChange={handleVatChange}
+      // Additional props for styling and behavior
+                             />
                         </div>
                       </div>
 
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Description</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" value={description} onChange={(e) => {setDescription(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
+                          <input type="text" className="form-control" onChange={(e) => {setDescription(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
                         </div>
                       </div>
 
@@ -242,7 +251,6 @@ const handleVeg = (event) => {
                         <div className="col-sm-9">
                         <Select
                           options={veg}
-                          value={vegs}
                           onChange={handleVeg}
                          />
                         </div>
@@ -253,7 +261,6 @@ const handleVeg = (event) => {
                         <div className="col-sm-9">
                         <Select
                           options={Beverage}
-                          value={Beverages}
                           onChange={handleBeverage}
                          />
                         </div>
@@ -263,7 +270,6 @@ const handleVeg = (event) => {
                         <div className="col-sm-9">
                         <Select
                           options={bar}
-                          value={bars}
                           onChange={handleBar}
                          />
                         </div>

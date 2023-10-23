@@ -11,7 +11,7 @@ import { redirect, useNavigate } from "react-router-dom";
 const AddIngredients =() =>{
 
     const [categories, setCategories] = useState([]);
-    const [category, setSelectedCategory] = useState('');
+    const [categoryId, setSelectedCategory] = useState('');
    
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const AddIngredients =() =>{
 
 
   const [units, setUnits] = useState([]);
-  const [unit, setSelectedUnit] = useState('');
+  const [unitId, setSelectedUnit] = useState('');
 
  
   useEffect(() => {
@@ -61,7 +61,7 @@ const AddIngredients =() =>{
     const handleSubmit =(event) =>{
 
         event.preventDefault();
-        axios.post('http://localhost:5000/api/ingredient/createingredient',{ name,category, unit,purchaseprice,alertquantity,description })
+        axios.post('http://localhost:5000/api/ingredient/createingredient',{ name,categoryId,unitId ,purchaseprice,alertquantity,description })
         .then(res =>{
 
             console.log(res);
@@ -104,7 +104,7 @@ const AddIngredients =() =>{
                       <div className="form-group row">
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food Category</label>
                         <div className="col-sm-9">
-                        <select name="category" className="form-control" onChange={handleCategoryChange}  value={category}>
+                        <select name="category" className="form-control" onChange={handleCategoryChange}  value={categoryId}>
                              <option value="">Select Category</option>
                                  {categories.map((category) => (
                                   <option key={category._id} value={category._id}>
@@ -119,7 +119,7 @@ const AddIngredients =() =>{
                       <div className="form-group row">
                         <label for="exampleInputUsername2" className="col-sm-3 col-form-label">Food ingredient Unit</label>
                         <div className="col-sm-9">
-                        <select name="category" className="form-control" onChange={handleUnitChange} value={unit}>
+                        <select name="category" className="form-control" onChange={handleUnitChange} value={unitId}>
                            <option value="">Select Food Ingredient Unit</option>
                               {units.map((unit) => (
                                  <option key={unit._id} value={unit._id}>

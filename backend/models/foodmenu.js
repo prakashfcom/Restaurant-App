@@ -1,11 +1,13 @@
 const mongoose = require('mongoose'); // Erase if already required
 
 // Declare the Schema of the Mongo model
-var foodmenuSchema = new mongoose.Schema({
+const foodmenuSchema = new mongoose.Schema({
     foodmenuname:{
         type:String,
-      
+        required:true,
+        unique:true,
         index:true,
+        default: "",
 
        
     },
@@ -17,7 +19,7 @@ var foodmenuSchema = new mongoose.Schema({
     
     },
 
-foodingredientId: [String],
+foodingredientId: [{type:String,}],
    
     salesprice:{
         type:String,
@@ -35,18 +37,16 @@ foodingredientId: [String],
     vegitem:{
         type:String,
     },
-    beverage:{
-        type:String,
-    },
-    bar:{
-        type:String,
-    },
-    photo:{
-        type:String,
-       
-    }
+
+
+   
     
 });
 
+
 //Export the model
-module.exports = mongoose.model('Foodmenu', foodmenuSchema);
+
+
+const Foodmenu = mongoose.model('Foodmenu', foodmenuSchema);
+
+module.exports = Foodmenu;

@@ -60,7 +60,22 @@ const loginUserController =asyncHandler(async(req,res) =>{
 
 });
 
+const vertifyUser =asyncHandler(async(req,res,next) =>{
+  const token =req.cookies.token;
+  if(!token)
+  {
+
+  }
+  else
+  {
+
+  }
+})
+
 const dashboard =asyncHandler(async(req,res)=>{
+ // const token =req.cookies.token;
+ // console.log(token);
+
     
 })
 
@@ -89,4 +104,4 @@ const logout = asyncHandler(async (req, res) => {
   });
 
 
-module.exports={ createUser,loginUserController,logout};
+module.exports={ createUser,loginUserController,logout,dashboard};

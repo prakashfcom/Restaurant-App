@@ -12,7 +12,41 @@ import { redirect, useNavigate } from "react-router-dom";
 const AddFoodMenu =() =>{
 
     
+    
+
+//Fetch from food Category
+const [foodCategory, setFoodcategory] = useState([]);
+
   useEffect(() => {
+   
+    axios.get('http://localhost:5000/api/foodmenu/foodcategory')
+    .then((response) => {
+      setFoodcategory(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}, []);
+  //     .then(response => {
+      
+  //       const data = response.data.map(item => ({
+  //         value: item._id,
+  //         label: item.foodcategoryname
+  //       }));
+  //       setFoodcategory(data);
+  //     })
+  //     .catch(error => {
+  //       console.error('Error fetching data: ', error);
+  //     });
+  // }, []);
+
+ 
+//fetch Ingredients
+  const [units, setOptions] = useState([]);
+ 
+ 
+
+useEffect(() => {
     // Fetch data from your API here
     axios.get('http://localhost:5000/api/foodmenu/ingredients')
       .then(response => {
@@ -28,76 +62,35 @@ const AddFoodMenu =() =>{
       });
   }, []);
 
-  const [units, setOptions] = useState([]);
 
-  const [foodCategory, setFoodcategory] = useState([]);
 
-  useEffect(() => {
-   
-    axios.get('http://localhost:5000/api/foodmenu/foodcategory')
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
+
+  //Fetch Vat
+
+  const [vat,selectVat] = useState([]);
+  
+  useEffect(() =>{
+    axios.get('http://localhost:5000/api/foodmenu/vat')
     .then((response) => {
-      setFoodcategory(response.data);
+      selectVat(response.data);
     })
     .catch((error) => {
       console.error(error);
     });
 }, []);
 
-const handleCategoryChange = (e) => {
-  setSelectedCategory(e.target.value);
-};
 
-const [vat,selectVat] = useState([]);
-  
-useEffect(() =>{
-  axios.get('http://localhost:5000/api/foodmenu/vat')
-  .then((response) => {
-    selectVat(response.data);
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-}, []);
+  const handleVatChange = (event) => {
 
+    setSelectVat(event.target.value);
+  //  setSelectVat(event);
+  //  alert({svat});
+   }
 
-const handleVatChange = (event) => {
-
-  setSelectVat(event.target.value);
-
- }
-
- const Beverage  = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
- 
-];
-
-const veg  = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
- 
-];
-
-const bar  = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
- 
-];
-
-const handleVeg = (event) => {
-  setVeg(event);
-  
-//  alert({svat});
- }
- const handleBeverage = (event) => {
-  setBeverage(event);
-//  alert({svat});
- }
-
- const handleBar = (event) => {
-  setBars(event);
-//  alert({svat});
- }
 
 
    const [vegs,setVeg] =useState();
@@ -114,17 +107,23 @@ const handleVeg = (event) => {
 
 
 
-   const navigate = useNavigate();
-   const handleSubmit =(event) =>{
+
+
+  const Beverage  = [
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+   
+  ];
+  const navigate = useNavigate();
+  const handleSubmit =(event) =>{
     event.preventDefault();
 
    
 
-    // axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu', {
-      fetch('http://localhost:5000/api/foodmenu/creatfoodmenu', {
+    axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({foodmenuname,foodcategoryId,vatId,salesprice,description,vegs,Beverages,bars,foodingredientId: selectedValues.map(units => units.value), })
+      body: JSON.stringify({foodmenuname,foodingredientId: selectedValues.map(units => units.value) })
     })
       .then(res => {
         console.log(res);
@@ -137,13 +136,6 @@ const handleVeg = (event) => {
 
 
   }
-
-   
-   
-  
-
-
-  
 
 
     return(
@@ -202,6 +194,7 @@ const handleVeg = (event) => {
       isMulti={true} // Enable multi-select
       value={selectedValues}
       onChange={selectedOptions => setSelectedValues(selectedOptions)}
+      
     />
 
                        
@@ -212,7 +205,7 @@ const handleVeg = (event) => {
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Sales Price</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" value={salesprice} onChange={(e) => {setSalesPrice(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
+                          <input type="text" className="form-control" onChange={(e) => {setSalesPrice(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
                         </div>
                       </div>
 
@@ -233,16 +226,15 @@ const handleVeg = (event) => {
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Description</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" value={description} onChange={(e) => {setDescription(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
+                          <input type="text" className="form-control" onChange={(e) => {setDescription(e.target.value)}} name="foodmenuname" id="exampleInputUsername2"  placeholder="Food Menu" />
                         </div>
                       </div>
-
+{/* 
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Is it Veg Item ?</label>
                         <div className="col-sm-9">
                         <Select
                           options={veg}
-                          value={vegs}
                           onChange={handleVeg}
                          />
                         </div>
@@ -253,7 +245,6 @@ const handleVeg = (event) => {
                         <div className="col-sm-9">
                         <Select
                           options={Beverage}
-                          value={Beverages}
                           onChange={handleBeverage}
                          />
                         </div>
@@ -263,11 +254,10 @@ const handleVeg = (event) => {
                         <div className="col-sm-9">
                         <Select
                           options={bar}
-                          value={bars}
                           onChange={handleBar}
                          />
                         </div>
-                      </div>
+                      </div> */}
 
                       <div className="form-group row">
                         <label htmlFor="exampleInputUsername2" className="col-sm-3 col-form-label">Photo</label>

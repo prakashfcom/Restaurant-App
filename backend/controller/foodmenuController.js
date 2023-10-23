@@ -3,6 +3,9 @@ const Foodmenu =require('../models/foodmenuModel');
 const foodcategory =require('../models/foodcategoryModel');
 const Ingredients =require('../models/ingredientsModel');
 const vat =require('../models/vatModel');
+const { default: mongoose } = require("mongoose");
+const Schema = mongoose.Schema;
+const itemSchema = new Schema({ data: String });
 
 
 
@@ -48,9 +51,10 @@ const creatFoodmenu =asyncHandler(async(req,res) =>{
   }
   else{
      
-      throw new Error("Category Already Exist");
+      throw new Error("Foodmenu Name Already Exist");
 
   }
+
 
 
 })

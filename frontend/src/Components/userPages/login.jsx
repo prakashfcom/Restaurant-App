@@ -13,8 +13,19 @@ function  Login() {
 const handleSubmit =(e) =>{
   e.preventDefault()
   axios.post('http://localhost:5000/api/user/login',{email,password})
-  .then(result => {console.log(result)
-   navigate('/dashboard')
+  .then(result => {
+   if(result.data)
+   {
+
+   // localStorage.setItem('type', res.data.id)
+   
+    localStorage.setItem('token', res.data.token)
+    navigate('/dashboard')
+   }
+   else{
+    navigate('/')
+   }
+   //
   })
   .catch(err =>console.log(err))
   

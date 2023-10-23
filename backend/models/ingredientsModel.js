@@ -8,9 +8,19 @@ var ingredientsSchema = new mongoose.Schema({
         unique:true,
       
     },
-    category:[],
+    categoryId:
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: "Category",
+          },
     
-    unit:[],
+    
+    unitId:
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: "Ingredientunit",
+          },
+
     purchaseprice:{
         type:String,
         

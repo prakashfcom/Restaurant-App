@@ -41,4 +41,42 @@ const getingredientUnit =asyncHandler(async(req,res) =>{
       }
 });
 
-module.exports={ createIngredient,getCategory,getingredientUnit };
+
+const getalling =asyncHandler(async(req,res) =>{
+
+
+  try {
+    const ingredient = await Ingredients.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: '$category',
+      },
+      {
+        $lookup: {
+          from: 'ingredientunits',
+          localField: 'unitId',
+          foreignField: '_id',
+          as: 'ingredientunit',
+        },
+      },
+      {
+        $unwind: '$ingredientunit',
+      },
+    ]);
+  
+    res.json(ingredient);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+
+});
+
+module.exports={ createIngredient,getCategory,getingredientUnit,getalling };
