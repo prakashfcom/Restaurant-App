@@ -11,7 +11,8 @@ var foodmenuSchema = new mongoose.Schema({
     },
     foodcategoryId:{
     
-            type:String,
+        type: mongoose.Schema.ObjectId,
+       
             ref: "Foodcategory",
           
     
@@ -24,7 +25,7 @@ foodingredientId: [String],
       
     },
     vatId:{
-        type: String,
+        type: mongoose.Schema.ObjectId,
         ref: "Vat",
     },
     description:

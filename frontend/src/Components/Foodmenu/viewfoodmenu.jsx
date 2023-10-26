@@ -9,6 +9,22 @@ import { redirect, useNavigate,Link } from "react-router-dom";
 
 
 const ViewFoodMenu =() =>{
+
+  const [foodmenus, setFoodmenu] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/foodmenu/getallfoodmenu')
+      .then((response) => response.json())
+      .then((data) => setFoodmenu(data))
+      .catch((error) => console.error(error));
+  }, []);
+
+
+  const handleDelete =(id) =>
+  {
+  }
+
+
     return (
         <div className="container-scroller">
         <Header />
@@ -27,12 +43,48 @@ const ViewFoodMenu =() =>{
                     <table className="table table-hover">
                       <thead>
                         <tr>
-                          <th>Vat Name</th>
-                          <th>Percentage</th>
+                          <th>Food Name</th>
+                          <th>Food Category</th>
+                        <th>Sales Price</th>
+                        <th>Vat</th>
+                        <th>Photo</th>
                         <th>Action</th>
                         </tr>
                       </thead>
-                   
+                   <tbody>
+                   {
+                        foodmenus.map((order) => (
+
+                            <tr >
+                                <td>
+                                    {order.foodmenuname}
+                                </td>
+                                <td>
+                                    {order.foodcategory.foodcategoryname}
+                                </td>
+                                <td>
+                                    {order.salesprice}
+                                </td>
+                                <td>
+                                    {order.vat.vatname}
+                                </td>
+                                <td>
+                                    {order.image}
+                                </td>
+
+
+                              
+                               
+                                <td>
+                                <Link to={`/editingredientunit/${order._id}`} className="btn btn-primary">Edit</Link>
+                                    <button onClick={  (e)=>handleDelete(order._id)} className="btn btn-danger">Delete</button>
+                                </td>
+
+                            </tr>
+
+                        ))
+                    }
+                   </tbody>
                     </table>
                   </div>
                 </div>

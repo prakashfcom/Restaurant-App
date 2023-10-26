@@ -26,6 +26,9 @@ import EditVat from './Components/vat/editVat'
 import AddWaiter from './Components/Waiter/addWaiter'
 import ViewWaiter from './Components/Waiter/viewWaiter'
 import EditWaiter from './Components/Waiter/editWaiter'
+import ViewCustomer from './Components/Customer/viewCustomer'
+import AddCustomer from './Components/Customer/addCustomer'
+import EditCustomer from './Components/Customer/editCustomer'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -68,6 +71,11 @@ function App() {
       <Route path='/editWaiter/:id' element={<EditWaiter />}></Route>
       {/* Pos */}
       <Route path='/pos' element={<Pos />}></Route>
+
+      {/* Customer  */}
+      <Route path='/viewCustomer' element={<ViewCustomer />}></Route>
+      <Route path='/addCustomer' element={<AddCustomer />}></Route>
+      <Route path='/editCustomer/:id' element={<EditCustomer />}></Route>
 
     </Routes>
   </BrowserRouter>

@@ -10,11 +10,15 @@ import { redirect, useNavigate,Link } from "react-router-dom";
 const ViewCategory =() =>{
     const [data , setData] =useState([]);
     const navigate = useNavigate();
+   
     useEffect( ()=>{
+
+    
 
         axios.get('http://localhost:5000/api/category/allcategory')
         .then(res =>setData(res.data))
         .catch(err =>console.log(err));
+       
 
     },[])
 
@@ -47,9 +51,9 @@ const ViewCategory =() =>{
                     <h4 className="card-title">Food Category List</h4>
                     <div className="d-flex justify-content-end">
                     <Link to="/addingredientfoodcategory" className="btn btn-success">Add +</Link>
-                </div>
+                </div><br />
                   
-                    <table className="table table-hover">
+                <table id="example" className="table table-striped table-bordered" >
                       <thead>
                         <tr>
                           <th>Category Name</th>

@@ -48,7 +48,7 @@ const AddTable =() =>{
 
       if (!data.seatcapacity) {
         errors.seatcapacity = "Seat Capacity is required";
-      } else if (!/^\d+$/.test(data.mobile)) {
+      } else if (!/^\d+$/.test(data.seatcapacity)) {
         errors.seatcapacity = "Only numbers are allowed in the Seat Capacity";
       }
   

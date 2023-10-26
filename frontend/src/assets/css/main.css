@@ -135,7 +135,7 @@
 .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
     color: #000;
     background-color: #eee;
-    border-radius:10px 0px 0px 10px;
+    /* border-radius:10px 0px 0px 10px; */
     margin-left: 2px;
     margin-top: 3px;
     margin-bottom: 3px;
@@ -203,3 +203,17 @@ a.nav-link.nav-link-waiter.active img{
     color: red;
     font-size: 13px;
 }
+
+flex-columns {
+    flex-direction: row!important;
+}
+.navsz
+{
+    padding-left: 20px;
+}
+
+.tablecenter
+{
+    text-align: center;
+}
+
