@@ -5,7 +5,7 @@ const Ingredients =require('../models/ingredientsModel');
 const vat =require('../models/vatModel');
 const { default: mongoose } = require("mongoose");
 
-const multer = require('multer');
+
 const Schema = mongoose.Schema;
 const itemSchema = new Schema({ data: String });
 
@@ -52,16 +52,65 @@ const getvat =asyncHandler(async(req,res) =>{
 // const upload = multer({ storage: storage });
 
 
-const creatFoodmenu =asyncHandler(async(req,res) =>{
+// const creatFoodmenu =asyncHandler(async(req,res) =>{
 
-  const foodmenuname =req.body.foodmenuname;
+//   const foodmenuname =req.body.foodmenuname;
+//   // const upload = multer({ storage }).single("photo");
+//   const findFoodmenu =await Foodmenu.findOne({ foodmenuname:foodmenuname });
+//   if(!findFoodmenu)
+//   {
+//       //Create a new User
+//       const newFoodcategory =Foodmenu.create(req.body);
+//       res.json(newFoodcategory);
+//   }
+//   else{
+     
+//       throw new Error("Foodmenu Name Already Exist");
+
+//   }
+
+
+
+// });
+
+
+
+const creatFoodmenu =asyncHandler(async(req,res) =>{ 
+
+  const {filename} = req.file;
+  const {foodmenuname,foodcategoryId,vatId,salesprice,description,vegitem,beverage,bar,foodingredientId} = req.body;
+  const foodmenus =req.body.foodmenuname;
+
   // const upload = multer({ storage }).single("photo");
-  const findFoodmenu =await Foodmenu.findOne({ foodmenuname:foodmenuname });
+  const findFoodmenu =await Foodmenu.findOne({ foodmenuname:foodmenus });
   if(!findFoodmenu)
   {
+    try{
       //Create a new User
-      const newFoodcategory =Foodmenu.create(req.body);
-      res.json(newFoodcategory);
+      // const newFoodcategory =Foodmenu.create(req.body);
+      // res.json(newFoodcategory);
+      
+      const foodmenu = new Foodmenu({
+        foodmenuname:foodmenuname,
+        foodcategoryId:foodcategoryId,
+        vatId:vatId,
+        salesprice:salesprice,
+        description:description,
+        vegitem:vegitem,
+        beverage:beverage,
+        bar:bar,
+        foodingredientId:foodingredientId,
+        photo:filename,
+      
+    });
+
+    const finaldata = await foodmenu.save();
+
+    res.json(finaldata);
+  }
+  catch (error) {
+    res.status(401).json({status:401,error})
+}
   }
   else{
      
@@ -69,11 +118,8 @@ const creatFoodmenu =asyncHandler(async(req,res) =>{
 
   }
 
-
-
+  
 });
-
-
 
 
 

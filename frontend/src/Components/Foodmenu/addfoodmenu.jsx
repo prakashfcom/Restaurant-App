@@ -107,15 +107,15 @@ const handleVeg = (event) => {
   
 };
 
-const setPhoto = (file) =>{
+// const setPhoto = (file) =>{
 
-  const reader =new FileReader();
-  reader.readAsDataURL(file)
-  reader.onloadend =()=>{
-    setImage(reader.result);
-  }
+//   // const reader =new FileReader();
+//   // reader.readAsDataURL(file)
+//   // reader.onloadend =()=>{
+//   //   setImage(reader.result);
+//   // }
 
-}
+// }
 
 
    const [vegitem,setVeg] =useState();
@@ -127,7 +127,7 @@ const setPhoto = (file) =>{
    const [foodcategoryId, setSelectedCategory] = useState('');
    const [selectedValues, setSelectedValues] = useState('');
    const[vatId,setSelectVat] =useState('');
-   const [photo, setImage] = useState('');
+   const [photo, setPhoto] = useState('');
 
 //console.log(photo);
 console.log(photo);
@@ -137,24 +137,53 @@ console.log(photo);
    const handleSubmit =(event) =>{
     event.preventDefault();
 
+    var formData = new FormData();
+    formData.append("photo", photo);
+    formData.append("foodmenuname", foodmenuname);
+    formData.append("foodingredientId", JSON.stringify(selectedValues.map(units => units.value)));
+    formData.append('foodcategoryId', foodcategoryId);
+formData.append('vatId', vatId);
+formData.append('salesprice', salesprice);
+formData.append('description', description);
+formData.append('vegitem', vegitem);
+formData.append('beverage', beverage);
+formData.append('bar', bar);
+    const config = {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    };
+
+
     
 
     // axios.post('http://localhost:5000/api/foodmenu/creatfoodmenu', {
-      fetch('http://localhost:5000/api/foodmenu/creatfoodmenu', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    // headers:{ 'Content-Type': ['multipart/form-data', 'application/json']},
-      body: JSON.stringify({foodmenuname,foodcategoryId,vatId,salesprice,description,vegitem,beverage,bar,photo,foodingredientId: selectedValues.map(units => units.value), })
-    })
-      .then(res => {
+    //   fetch('http://localhost:5000/api/foodmenu/creatfoodmenu', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    // // headers:{ 'Content-Type': ['multipart/form-data', 'application/json']},
+    //   body: JSON.stringify({foodmenuname,foodcategoryId,vatId,salesprice,description,vegitem,beverage,bar,photo,foodingredientId: selectedValues.map(units => units.value), })
+    // })
+    //   .then(res => {
+    //     console.log(res);
+    //     navigate('/viewfoodmenu');
+    //   })
+    //   .catch(err => console.log(err));
+   
+    // const res =  axios.post("http://localhost:5000/api/foodmenu/creatfoodmenu", formData, config);
+
+    // if (res.data.status === 401 || !res.data) {
+    //   console.log("errror")
+    // } else {
+    //   navigate('/viewfoodmenu');
+    // }
+    axios
+    .post('http://localhost:5000/api/foodmenu/creatfoodmenu', formData, config)
+     .then(res => {
         console.log(res);
         navigate('/viewfoodmenu');
       })
       .catch(err => console.log(err));
-   
-   
-  
-
 
   }
 

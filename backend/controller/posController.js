@@ -63,6 +63,17 @@ const getposFooditems =asyncHandler(async (req,res) =>{
       {
         $unwind: '$foodcategory',
       },
+      {
+        $lookup: {
+          from: 'vats',
+          localField: 'vatId',
+          foreignField: '_id',
+          as: 'vat',
+        },
+      },
+      {
+        $unwind: '$vat',
+      },
       
     ]);
   

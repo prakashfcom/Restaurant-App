@@ -3,7 +3,7 @@ import { useState,useEffect } from "react";
 import Header from '../layouts/Header';
 import Sidebar from '../layouts/Sidebar';
 import Footer from '../layouts/Footer';
-
+import { toast } from 'react-toastify';
 import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
 import PosTable from "./posTable";
@@ -127,6 +127,7 @@ const handleCustomer=(event)=>
 }
 
 const [table, setTable] = useState([]);
+
 useEffect(() => {
    
     axios.get('http://localhost:5000/api/pos/posTable')
@@ -137,6 +138,18 @@ useEffect(() => {
       console.error(error);
     });
 }, []);
+const [modaltable, setModalTable] = useState([]);
+useEffect(() => {
+   
+  axios.get('http://localhost:5000/api/pos/posTable')
+  .then((response) => {
+      setModalTable(response.data);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+}, []);
+
 const containerStyle = {
     display: 'block',
     marginLeft: 'auto',
@@ -157,10 +170,104 @@ const containerStyle = {
   //const distinctCategories = Array.from(new Set(foodCategory.map(item => item.foodcategory.foodcategoryname)));
   const distinctCategories = [...new Set(foodCategory.map(item => item.foodcategory.foodcategoryname))];
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [cart, setCart] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [vatAmount, setTotalVat] = useState(0);
+  const toastOptions = {
+    autoClose: 400,
+    pauseOnHover: true,
+  }
+  const addProductToCart = async(menu) =>{
+
+    let findProductInCart = await cart.find(i=>{
+      return i.id === menu._id
+    });
+
+    if(findProductInCart){
+      let newCart = [];
+      let newItem;
+
+      cart.forEach(cartItem => {
+        if(cartItem.id === menu._id){
+          newItem = {
+            ...cartItem,
+            quantity: cartItem.quantity + 1,
+            totalAmount: cartItem.salesprice * (cartItem.quantity + 1),
+           // vatAmount:(cartItem.salesprice * (cartItem.quantity + 1) * cartItem.vat.percentage) / 100,
+         
+         
+          }
+          //console.log(vatAmount);
+          newCart.push(newItem);
+        }else{
+          newCart.push(cartItem);
+         // console.log(cartItem);
+        }
+      });
+
+      setCart(newCart);
+     toast(`Added ${newItem.foodmenuname} to cart`,toastOptions)
+
+    }else{
+      let addingProduct = {
+        ...menu,
+        'quantity': 1,
+        'totalAmount': menu.salesprice,
+      }
+      setCart([...cart, addingProduct]);
+      toast(`Added ${menu.foodmenuname} to cart`, toastOptions)
+    }
+
+
+  }
+
+  const removeProduct = async(menu) =>{
+    const newCart =cart.filter(cartItem => cartItem._id !== menu._id);
+    setCart(newCart);
+  }
+
+  // const componentRef = useRef();
+
+  // const handleReactToPrint = useReactToPrint({
+  //   content: () => componentRef.current,
+  // });
+
+  // const handlePrint = () => {
+  //   handleReactToPrint();
+  // }
+
+  // useEffect(() => {
+  //   fetchProducts();
+  // },[]);
+
+  useEffect(() => {
+    let newTotalAmount = 0;
+   
+    cart.forEach(icart => {
+      newTotalAmount = newTotalAmount + parseInt(icart.totalAmount);
+    
+    })
+    setTotalAmount(newTotalAmount);
+ 
+  },[cart])
+
+  
+  useEffect(() => {
+ 
+  
+    let newVatAmount =0;
+    cart.forEach(icart => {
+    
+      newVatAmount = newVatAmount + parseInt(icart.vatAmount);
+    })
+  
+    setTotalVat(newVatAmount)
+  },[cart])
 
 
     return (
-        <div className="container-scroller">
+        <div className="container-fluid">
           
            <div className="col-12 main-content">
           <div className="tbl-h">
@@ -190,10 +297,10 @@ const containerStyle = {
                     <div className="col-md-7">
 
                     <input type="text" className="form-control" placeholder="Search Here Food" />
-                    <div class="scroller scroller-left float-left mt-2"><i class="fa fa-chevron-left"></i></div>
-        <div class="scroller scroller-right float-right mt-2"><i class="fa fa-chevron-right"></i></div>
-        <div class="wrapper-nav">
-            <nav class="nav nav-tabs list mt-2" id="myTab" role="tablist">
+                    <div class="scroller scroller-left float-left mt-2"><i className="fa fa-chevron-left"></i></div>
+        <div className="scroller scroller-right float-right mt-2"><i className="fa fa-chevron-right"></i></div>
+        <div className="wrapper-nav">
+            <nav className="nav nav-tabs list mt-2" id="myTab" role="tablist">
             {distinctCategories.map((category, index) => (
           <a
             key={index}
@@ -207,23 +314,23 @@ const containerStyle = {
             </nav>
         </div>
         <div class="tab-content p-3" id="myTabContent">
-        <div className="row">  
+        {isLoading ? 'Loading' :<div className="row">  
         {foodCategory.length > 0 &&
             foodCategory
               .filter(item => item.foodcategory.foodcategoryname === distinctCategories[activeTab])
               .map((menu, index) => (
                 <div className="col-md-3 col-md-3" key={index}>
-                  <div className="menu-box">
+                  <div className="menu-box" onClick={() => addProductToCart(menu)}>
                     <div className="menu-div">
-                      <img src="assets/images/tea.jpg" className="img-fluid foodimg" />
+                      <img src={`/uploads/${menu.photo}`} className="img-fluid foodimg" />
                       <h6 className="mt-2">{menu.foodmenuname}</h6>
                       <p>Price: {menu.salesprice}</p>
                     </div>
                   </div>
                 </div>
               ))}
- </div>
-        </div>
+ </div> }
+        </div> 
                             
                            
                     </div>
@@ -244,8 +351,8 @@ const containerStyle = {
         <div className="col-md-4">
         <select name="" className="form-control " onChange={handleWaiter}  value={waiters} >
                              <option >Select Waiter</option>
-                                 {waiter.map((wait) => (
-                                  <option key={wait._id} value={wait._id}>
+                                 {waiter.map((wait,wai) => (
+                                  <option key={wai} value={wait._id}>
                                       {wait.waitername}
                                    </option>
                                  ))}
@@ -254,8 +361,8 @@ const containerStyle = {
         <div className="col-md-4">
         <select name="" className="form-control" onChange={handleCustomer}  value={customers}  >
                              <option >Select Customer</option>
-                                 {customer.map((cust) => (
-                                  <option key={cust._id} value={cust._id}>
+                                 {customer.map((cust,cus) => (
+                                  <option key={cus} value={cust._id}>
                                       {cust.customername}
                                    </option>
                                  ))}
@@ -282,11 +389,26 @@ const containerStyle = {
                      <th scope="col">Name</th>
                      <th scope="col">U.Price</th>
                      <th scope="col">Qty</th>
+                       
                      <th scope="col" className="text-right">Total</th>
+                     <th>Action</th>
                    </tr>
                  </thead>
                  <tbody>
-                 
+                 { cart ? cart.map((cartProduct, key) => <tr key={key}>
+                      <td>{cartProduct._id}</td>
+                      <td>{cartProduct.foodmenuname}</td>
+                      <td>{cartProduct.salesprice}</td>
+                      <td>{cartProduct.quantity}</td>
+                    
+                      <td>{cartProduct.totalAmount}</td>
+                      <td>
+                        <button className='btn btn-danger btn-sm' onClick={() => removeProduct(cartProduct)}>Remove</button>
+                      </td>
+
+                    </tr>)
+
+                    : 'No Item in Cart'}
                  
                   
                  </tbody>
@@ -297,7 +419,7 @@ const containerStyle = {
              <table className="table">
                    <tr>                               
                      <td>Total </td>                                
-                     <th className="text-right"></th>
+                     <th className="text-right">${totalAmount}</th>
                    </tr>
                    <tr>                               
                      <td >Discount  </td>                                
@@ -305,7 +427,7 @@ const containerStyle = {
                    </tr>
                    <tr>                               
                      <td>VAT </td>                                
-                     <th className="text-right"></th>
+                     <th className="text-right">${vatAmount}</th>
                    </tr>
                    <tr>                               
                      <th>Grand Total   </th>                                
@@ -385,7 +507,7 @@ const containerStyle = {
                  <div className="row">
                    
                      <div className="form-group row">
-                 <label for="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Name</label>
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Name</label>
                  <div className="col-sm-8">
                  <input type="text" className="form-control" name="customername" id="exampleInputUsername2" onChange={e =>setValues({...values, customername: e.target.value})} placeholder="Customer Name" />
                           {errors.customername && <span className="error">{errors.customername}</span>}
@@ -394,7 +516,7 @@ const containerStyle = {
                </div>
 
                <div className="form-group row">
-                 <label for="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Email</label>
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Email</label>
                  <div className="col-sm-8">
                  <input type="text" className="form-control" name="customeremail" id="exampleInputUsername2" onChange={e =>setValues({...values, customeremail: e.target.value})} placeholder="Customer Email" />
                           {errors.customeremail && <span className="error">{errors.customeremail}</span>}
@@ -402,7 +524,7 @@ const containerStyle = {
                  </div>
                </div>
                <div className="form-group row">
-                 <label for="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Mobile</label>
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Mobile</label>
                  <div className="col-sm-8">
                  <input type="text" className="form-control" name="customermobile" id="exampleInputUsername2" onChange={e =>setValues({...values, customermobile: e.target.value})} placeholder="Customer Mobile" />
                           {errors.customermobile && <span className="error">{errors.customermobile}</span>}
@@ -410,7 +532,7 @@ const containerStyle = {
                  </div>
                </div>
                <div className="form-group row">
-                 <label for="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Address</label>
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Address</label>
                  <div className="col-sm-8">
                  <textarea className='form-control' name='customeraddress' onChange={e =>setValues({...values, customeraddress: e.target.value})}></textarea>
                  </div>
@@ -477,7 +599,7 @@ const containerStyle = {
             <div className="row">
        
             {
-                  table.map((tables) =>(
+                  modaltable.map((tables) =>(
                
                 <div className="col-md-3">
                      <div className="card">
