@@ -3,6 +3,30 @@ import { useState,useEffect } from "react";
 import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
 const PosTable =() =>{
+  const [table, setTable] = useState([]);
+ 
+  const [showTable, setShowTable] = useState(false);
+  const handleCloseTable =() =>{
+    setShowTable(false);
+  }
+
+  const containerStyle = {
+    display: 'block',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '50%',
+  };
+
+  useEffect(() => {
+     
+      axios.get('http://localhost:5000/api/pos/posTable')
+      .then((response) => {
+          setTable(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
 
     return (

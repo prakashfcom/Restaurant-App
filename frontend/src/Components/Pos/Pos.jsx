@@ -241,29 +241,77 @@ const containerStyle = {
   //   fetchProducts();
   // },[]);
 
+  const [grandTotal, setGrandTotal] = useState(0);
+
   useEffect(() => {
     let newTotalAmount = 0;
+    let newVatAmount = 0;
    
     cart.forEach(icart => {
-      newTotalAmount = newTotalAmount + parseInt(icart.totalAmount);
-    
+
+      newTotalAmount = newTotalAmount + icart.quantity * parseInt(icart.totalAmount);
+      newVatAmount = parseInt(icart.vat.percentage) != 0 ? newVatAmount + icart.quantity * parseInt(icart.salesprice) * (parseInt(icart.vat.percentage)/100) : newVatAmount;
     })
+
+    console.log({newVatAmount});
     setTotalAmount(newTotalAmount);
- 
+    setTotalVat(newVatAmount.toFixed(2));
+    setGrandTotal((newTotalAmount+newVatAmount).toFixed())
   },[cart])
 
   
-  useEffect(() => {
+  // useEffect(() => {
  
   
-    let newVatAmount =0;
-    cart.forEach(icart => {
+  //   let newVatAmount =0;
+  //   cart.forEach(icart => {
     
-      newVatAmount = newVatAmount + parseInt(icart.vatAmount);
-    })
+  //     newVatAmount = newVatAmount + parseInt(icart.vatAmount);
+  //   })
   
-    setTotalVat(newVatAmount)
-  },[cart])
+  //   setTotalVat(newVatAmount)
+  // },[cart])
+
+  const handleSubmitPos =(e)=>{
+    e.preventDefault();
+  }
+
+  const handleIncrement = (prod) => {
+    const { _id, salesprice} = prod
+    console.log({cart, prod})
+    console.log({prodId: prod["_id"]});
+    let addQuantity = cart.map(item => {
+      if(item["_id"] == prod["_id"]) {
+        console.log(({item}));
+        item.quantity = item.quantity + 1;
+        return item;
+      }
+      return item;
+    })
+    console.log({addQuantity});
+    console.log({totalAmount});
+    // setTotalAmount(parseInt(totalAmount) + parseInt(salesprice))
+    setCart(addQuantity)
+  }
+
+  console.log({totalAmount});
+
+  const handleDecrement = (prod) => {
+    const { _id, salesprice} = prod
+    console.log({cart, prod})
+    console.log({prodId: prod["_id"]});
+    let addQuantity = cart.map(item => {
+      if(item["_id"] == _id) {
+        console.log(({item}));
+        item.quantity = item.quantity > 1 ? item.quantity - 1 : 1;
+        return item;
+      }
+      return item;
+    })
+    console.log({addQuantity});
+    // setTotalAmount(parseInt(totalAmount) - parseInt(salesprice))
+    setCart(addQuantity)
+  }
 
 
     return (
@@ -290,6 +338,7 @@ const containerStyle = {
           </ul>
       </div> 
                 </div>
+                <form onSubmit={handleSubmitPos}>
         <div className="row">
              <div className="tab-content mt-3">
              <div className="tab-pane active" id="dinein" role="tabpanel" aria-labelledby="duck-tab">
@@ -313,6 +362,7 @@ const containerStyle = {
 
             </nav>
         </div>
+      
         <div class="tab-content p-3" id="myTabContent">
         {isLoading ? 'Loading' :<div className="row">  
         {foodCategory.length > 0 &&
@@ -399,7 +449,7 @@ const containerStyle = {
                       <td>{cartProduct._id}</td>
                       <td>{cartProduct.foodmenuname}</td>
                       <td>{cartProduct.salesprice}</td>
-                      <td>{cartProduct.quantity}</td>
+                      <td><button onClick={()=>handleDecrement(cartProduct)}>-</button>{cartProduct.quantity}<button onClick={()=>handleIncrement(cartProduct)}>+</button></td>
                     
                       <td>{cartProduct.totalAmount}</td>
                       <td>
@@ -431,7 +481,7 @@ const containerStyle = {
                    </tr>
                    <tr>                               
                      <th>Grand Total   </th>                                
-                     <th className="text-right"></th>
+                     <th className="text-right">{grandTotal}</th>
                    </tr>
                    <tr>                               
                      <td>
@@ -476,6 +526,7 @@ const containerStyle = {
             </div>
 
         </div>
+        </form>
 
         {/* Add Customer  */}
         <div
