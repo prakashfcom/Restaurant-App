@@ -29,6 +29,8 @@ import EditWaiter from './Components/Waiter/editWaiter'
 import ViewCustomer from './Components/Customer/viewCustomer'
 import AddCustomer from './Components/Customer/addCustomer'
 import EditCustomer from './Components/Customer/editCustomer'
+import ViewPosOrder from './Components/Orders/viewPosorder'
+import ViewPosOrderdetails from './Components/Orders/viewOrderdetails'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -71,6 +73,8 @@ function App() {
       <Route path='/editWaiter/:id' element={<EditWaiter />}></Route>
       {/* Pos */}
       <Route path='/pos' element={<Pos />}></Route>
+      <Route path='/posorder' element={<ViewPosOrder />}></Route>
+      <Route path='/posorderdetails/:id' element={<ViewPosOrderdetails />}></Route>
 
       {/* Customer  */}
       <Route path='/viewCustomer' element={<ViewCustomer />}></Route>

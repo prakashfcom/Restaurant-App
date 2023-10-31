@@ -3,18 +3,66 @@ import { useState,useEffect } from "react";
 import Header from '../layouts/Header';
 import Sidebar from '../layouts/Sidebar';
 import Footer from '../layouts/Footer';
-
+import { toast } from 'react-toastify';
 import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
+import PosTable from "./posTable";
+import PosRunningOrder from "./posRunningorder";
 
 
 const Pos =() =>{
 
+    const customStyle = {
+        paddingTop: '84px', // Adjust the value as needed
+      };
+
+      const containerStyle = {
+        display: 'block',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        width: '50%',
+      };
+    
+
     const [foodCategory, setFoodcategory] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [waiter, setWaiter] = useState([]);
+    const [waiters,setWaiters] =useState('');
+    const [showTable, setShowTable] = useState(false);
+    const [table, setTable] = useState([]);
+    const [customer, setCustomer] = useState([]);
+    const [customers, setCustomers] = useState([]);
+    const [activeTab, setActiveTab] = useState(0);
+  
+    //const distinctCategories = Array.from(new Set(foodCategory.map(item => item.foodcategory.foodcategoryname)));
+    const distinctCategories = [...new Set(foodCategory.map(item => item.foodcategory.foodcategoryname))];
+  
+    const [isLoading, setIsLoading] = useState(false);
+    const [cart, setCart] = useState([]);
+    const [totalAmount, setTotalAmount] = useState(0);
+    const [vatAmount, setTotalVat] = useState(0);
+    
+  const [grandTotal, setGrandTotal] = useState(0);
+  const [options,setOptions] =useState('');
+  const [selectTable,setSelectTable] =useState();
+
+  const [showDineinOptions,setShowDineinOptions] =useState(true);
+
+// console.log(selectTable);
+// console.log(waiters);
+// console.log(customers);
+    const toastOptions = {
+      autoClose: 400,
+      pauseOnHover: true,
+    }
+    const navigate = useNavigate();
+
+
 
     useEffect(() => {
      
-      axios.get('http://localhost:5000/api/pos/poscategory')
+      axios.get('http://localhost:5000/api/pos/posfood')
       .then((response) => {
         setFoodcategory(response.data);
       })
@@ -23,1561 +71,689 @@ const Pos =() =>{
       });
   }, []);
 
-    return (
-        <div className="container-scroller">
-        <Header />
-        <div className="content-wrapper">
-        <div className="row p-2">
-  <div className="col-sm-5 col-lg-4">
-      <div className="wraper shdw">
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const [values,setValues] = useState({
+
+    customername :'',
+    customeremail:'',
+    customermobile:'',
+    customeraddress:''
+   
+
+})
+
+const handleSubmit =(event) =>{
+
+    event.preventDefault();
+    const validationErrors = validateForm(values);
+    if (Object.keys(validationErrors).length === 0) {
+    axios.post('http://localhost:5000/api/customer/createCustomer',values)
+    .then(res =>{
+
+        console.log(res);
+        navigate('/viewCustomer');
+    })
+    .catch(err =>console.log(err));
+  }
+  else {
+    // Set validation errors
+    setErrors(validationErrors);
+  }
+
+}
+
+
+const validateForm = (data) => {
+  let errors = {};
+
+  if (!data.customername) {
+    errors.customername = "Customer Name is required";
+  }
+
+  if (!data.customeremail) {
+    errors.customeremail = "Vat Percentage is required";
+  }else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(data.customeremail)) {
+    errors.customeremail = "Invalid email address";
+  }
+  if (!data.customermobile) {
+    errors.customermobile = "Mobile Number is required";
+  } else if (!/^\d+$/.test(data.customermobile)) {
+    errors.customermobile = "Enter Number Only";
+  }
+
+ 
+  return errors;
+};
+
+
+
+  useEffect(() => {
+   
+    axios.get('http://localhost:5000/api/pos/posWaiter')
+    .then((response) => {
+        setWaiter(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}, []);
+const handleWaiter = (event) => {
+
+    setWaiters(event.target.value);
+  
+   }
+   
+
+useEffect(() => {
+   
+    axios.get('http://localhost:5000/api/pos/posCustomer')
+    .then((response) => {
+        setCustomer(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}, []);
+const handleCustomer=(event)=>
+{
+    setCustomers(event.target.value);
+}
+
+
+
+useEffect(() => {
+   
+    axios.get('http://localhost:5000/api/pos/posTable')
+    .then((response) => {
+        setTable(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}, []);
+const [modaltable, setModalTable] = useState([]);
+useEffect(() => {
+   
+  axios.get('http://localhost:5000/api/pos/posTable')
+  .then((response) => {
+      setModalTable(response.data);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+}, []);
+
+
+
+  const handleOpenTable =(e) =>{
+    setShowTable(true);
+    //console.log(e);
+   // setOptions(e.target.innerText);
+  }
+  console.log(options);
+  const handleCloseTable =() =>{
+    setSelectTable('');
+    setShowTable(false);
+  }
+ 
+  const addProductToCart = async(menu) =>{
+
+    let findProductInCart = await cart.find(i=>{
+      return i.id === menu._id
+    });
+
+    if(findProductInCart){
+      let newCart = [];
+      let newItem;
+
+      cart.forEach(cartItem => {
+        if(cartItem.id === menu._id){
+          newItem = {
+            ...cartItem,
+            quantity: cartItem.quantity + 1,
+            totalAmount: cartItem.salesprice * (cartItem.quantity + 1),
+           // vatAmount:(cartItem.salesprice * (cartItem.quantity + 1) * cartItem.vat.percentage) / 100,
          
-          <div className="table-responsive vh-70">
-              <table className="table">
-                  <thead>
-                    <tr className="thead-light">
-                      <th scope="col">No.</th>
-                      <th scope="col">Name</th>
-                      <th scope="col">U.Price</th>
-                      <th scope="col">Qty</th>
-                      <th scope="col" className="text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td scope="row">1</td>
-                      <td>Veg Kurma</td>
-                      <td>10.00</td>
-                      <td>1</td>
-                      <td className="text-right">10.00</td>
-                    </tr>
-                    <tr>
-                      <td scope="row">2</td>
-                      <td>Chicken Masala</td>
-                      <td>20.00</td>
-                      <td>2</td>
-                      <td className="text-right">40.00</td>
-                    </tr>
-                    <tr>
-                      <td scope="row">3</td>
-                      <td>Paneer Butter</td>
-                      <td>15.00</td>
-                      <td>1</td>
-                      <td className="text-right">15.00</td>
-                    </tr>
-                  </tbody>
-                </table>
-          </div>
+         
+          }
+          //console.log(vatAmount);
+          newCart.push(newItem);
+        }else{
+          newCart.push(cartItem);
+         // console.log(cartItem);
+        }
+      });
 
-          <div className="table-responsive">
-              <table className="table">
-                    <tr>                               
-                      <td>Total </td>                                
-                      <th className="text-right">65.00</th>
-                    </tr>
-                    <tr>                               
-                      <td >Discount  </td>                                
-                      <th className="text-right">05.00</th>
-                    </tr>
-                    <tr>                               
-                      <td>VAT </td>                                
-                      <th className="text-right">03.50</th>
-                    </tr>
-                    <tr>                               
-                      <th>Grand Total   </th>                                
-                      <th className="text-right">63.50</th>
-                    </tr>
-                    <tr>                               
-                      <td>
-                         
-                          <div className="custom-control custom-radio custom-control-inline">
-                            <input type="radio" className="custom-control-input" id="defaultInline1" name="inlineDefaultRadiosExample" />
-                            <label className="custom-control-label" htmlFor="defaultInline1">Cash</label>
-                          </div>
-                          
-                        
-                          <div className="custom-control custom-radio custom-control-inline">
-                            <input type="radio" className="custom-control-input" id="defaultInline2" name="inlineDefaultRadiosExample" />
-                            <label className="custom-control-label" htmlFor="defaultInline2">Card</label>
-                          </div> 
-                      </td>                                
-                      <th ></th>
-                    </tr>
-                </table>
-          </div>
+      setCart(newCart);
+     toast(`Added ${newItem.foodmenuname} to cart`,toastOptions)
 
-          <div className="row">
-              <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Cancel</button></div>
-              <div className="col-lg-6 pl-0"><button type="button" className="btn btn-warning w-100 mb-2 p-2">Place Order</button></div>
-              <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Hold</button></div>
-              <div className="col-lg-6 pl-0"><button type="button" className="btn btn-success w-100 mb-2 p-2">Quick Pay</button></div>
-          </div>                                      
-      </div>
-  </div>
-  <div className="col-sm-7 col-lg-8">
-     <div className="division mb-4">
-          <div className="row">
-              <div className="col-lg-2">
-                  <button type="button" className="btn btn-success w-100">New Order</button>                           
-              </div>
-              <div className="col-lg-2">                            
-                  <input type="" className="htmlForm-control w-100" placeholder="Bill No" />
-              </div>
-              <div className="col-lg-3">
-                  <div className="htmlForm-group has-search mb-0">  
-                      <span className="fa fas-search htmlForm-control-feedback"></span>
-                      <input type="text" className="htmlForm-control" placeholder="Search" />
-                  </div>
-              </div>
-              <div className="col-lg-2 mb-0"><p>Short Code</p></div>
-              {/* <div className="col-lg-3 text-right">
-                 <a href="#"><img src="img/settings-ic.png" /></a>
-                 <a href="#"><img src="img/ic.png" /></a>
-                 <a href="#"><img src="img/send.png" /></a>
-                 <a href="#"><img src="img/print.png" /></a>
-                 <a href="#"><img src="img/login.png" /></a>
-              </div> */}
-          </div>
-     </div>
-     
-     <div className="row">
-      <div className="col-12 main-content">
+    }else{
+      let addingProduct = {
+        ...menu,
+        'quantity': 1,
+        'totalAmount': menu.salesprice,
+      }
+      setCart([...cart, addingProduct]);
+      toast(`Added ${menu.foodmenuname} to cart`, toastOptions)
+    }
+
+
+  }
+
+  const removeProduct = async(menu) =>{
+    const newCart =cart.filter(cartItem => cartItem._id !== menu._id);
+    setCart(newCart);
+  }
+
+  // const componentRef = useRef();
+
+  // const handleReactToPrint = useReactToPrint({
+  //   content: () => componentRef.current,
+  // });
+
+  // const handlePrint = () => {
+  //   handleReactToPrint();
+  // }
+
+  // useEffect(() => {
+  //   fetchProducts();
+  // },[]);
+
+
+  useEffect(() => {
+    let newTotalAmount = 0;
+    let newVatAmount = 0;
+   
+    cart.forEach(icart => {
+
+      newTotalAmount = newTotalAmount + icart.quantity * parseInt(icart.totalAmount);
+      newVatAmount = parseInt(icart.vat.percentage) != 0 ? newVatAmount + icart.quantity * parseInt(icart.salesprice) * (parseInt(icart.vat.percentage)/100) : newVatAmount;
+    })
+
+    console.log({newVatAmount});
+    setTotalAmount(newTotalAmount);
+    setTotalVat(newVatAmount.toFixed(2));
+    setGrandTotal((newTotalAmount+newVatAmount).toFixed())
+  },[cart])
+
+  
+  // useEffect(() => {
+ 
+  
+  //   let newVatAmount =0;
+  //   cart.forEach(icart => {
+    
+  //     newVatAmount = newVatAmount + parseInt(icart.vatAmount);
+  //   })
+  
+  //   setTotalVat(newVatAmount)
+  // },[cart])
+
+  const handleSubmitPos =(e)=>{
+    e.preventDefault();
+  }
+
+  const handleIncrement = (prod) => {
+    const { _id, salesprice} = prod
+    console.log({cart, prod})
+    console.log({prodId: prod["_id"]});
+    let addQuantity = cart.map(item => {
+      if(item["_id"] == prod["_id"]) {
+        console.log(({item}));
+        item.quantity = item.quantity + 1;
+        return item;
+      }
+      return item;
+    })
+    console.log({addQuantity});
+    console.log({totalAmount});
+    // setTotalAmount(parseInt(totalAmount) + parseInt(salesprice))
+    setCart(addQuantity)
+  }
+
+  console.log({totalAmount});
+
+  const handleDecrement = (prod) => {
+    const { _id, salesprice} = prod
+    console.log({cart, prod})
+    console.log({prodId: prod["_id"]});
+    let addQuantity = cart.map(item => {
+      if(item["_id"] == _id) {
+        console.log(({item}));
+        item.quantity = item.quantity > 1 ? item.quantity - 1 : 1;
+        return item;
+      }
+      return item;
+    })
+    console.log({addQuantity});
+    // setTotalAmount(parseInt(totalAmount) - parseInt(salesprice))
+    setCart(addQuantity)
+  }
+
+  const handleDine =(dine)=>{
+
+  }
+
+  const handleTakeaway =() =>{
+
+  }
+
+  const hanleDrlivery =() =>{
+
+  }
+
+const handlePlaceorder =() =>{
+  if(!options)
+  {
+    alert("Please ");
+  }
+
+}
+
+const handleDineinSubmit= () =>{
+    if(selectTable)
+    {
+      setShowTable(false);
+      setShowDineinOptions(false);
+      
+    }
+    
+
+}
+
+
+    return (
+        <div className="container-fluid">
+          
+           <div className="col-12 main-content">
           <div className="tbl-h">
           <ul className="nav nav-tabs nav-justified" role="tablist">
-              <li className="nav-item">
-                  <a className="nav-link active" data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Dine In</a>
+          <li className="nav-item">
+                
+                  <Link to="/dashboard" className="nav-link " data-toggle="tab"   aria-selected="true">Dashboard</Link>
               </li>
               <li className="nav-item">
-                  <a className="nav-link" data-toggle="tab" href="#delivery" role="tab" aria-controls="chicken2" aria-selected="false">Delivery</a>
+                  <a className="nav-link active" data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">New Order</a>
               </li>
               <li className="nav-item">
-                  <a className="nav-link" data-toggle="tab" href="#pickup" role="tab" aria-controls="kiwi2" aria-selected="false">Pick Up</a>
+                  <a className="nav-link" data-toggle="tab" href="#delivery" role="tab" aria-controls="chicken2" aria-selected="false">On Going Order</a>
               </li>
               <li className="nav-item">
-                  <a className="nav-link" data-toggle="tab" href="#running-order" role="tab" aria-controls="kiwi2" aria-selected="false">Running Order</a>
+                  <a className="nav-link" data-toggle="tab" href="#pickup" role="tab" aria-controls="kiwi2" aria-selected="false">Kitchen Status</a>
               </li>
-              {/* <li className="nav-item ">
-                  <a className="nav-link " data-toggle="tab" href="#waiter" role="tab" aria-controls="kiwi2" aria-selected="false">Waiter</a>
+              <li className="nav-item">
+                  <a className="nav-link" data-toggle="tab" href="#todayorder" role="tab" aria-controls="kiwi2" aria-selected="false">Today Order</a>
               </li>
-              <li className="nav-item ">
-                  <a className="nav-link " data-toggle="tab" href="#table" role="tab" aria-controls="kiwi2" aria-selected="false">Table</a>
-              </li>                     */}
+             
+           
           </ul>
-      </div>
-          <div className="tab-content mt-3">
-              <div className="tab-pane active" id="dinein" role="tabpanel" aria-labelledby="duck-tab">
-                  <div className="row">
-                      <div className="col-md-2 mb-3">
-                          <ul className="nav nav-pills flex-column shdw-lft" id="myTab" role="tablist">
-                              <li className="nav-item">
-                                  <a className="nav-link active" id="home-tab" data-toggle="tab" href="#Coffe" role="tab" aria-controls="home" aria-selected="true">coffee</a>
-                              </li>
-                              {
-                        foodCategory.map((pos) =>(
+      </div> 
+                </div>
+                <form onSubmit={handleSubmitPos}>
+        <div className="row">
+             <div className="tab-content mt-3">
+             <div className="tab-pane active" id="dinein" role="tabpanel" aria-labelledby="duck-tab">
+                <div className="row">
+                    <div className="col-md-7">
 
+                    <input type="text" className="form-control" placeholder="Search Here Food" />
+                    <div class="scroller scroller-left float-left mt-2"><i className="fa fa-chevron-left"></i></div>
+        <div className="scroller scroller-right float-right mt-2"><i className="fa fa-chevron-right"></i></div>
+        <div className="wrapper-nav">
+            <nav className="nav nav-tabs list mt-2" id="myTab" role="tablist">
+            {distinctCategories.map((category, index) => (
+          <a
+            key={index}
+            className={`nav-item nav-link ${index === activeTab ? 'active' : ''}`}
+            onClick={() => setActiveTab(index)}
+          >
+            {category}
+          </a>
+        ))}
+
+            </nav>
+        </div>
+      
+        <div class="tab-content p-3" id="myTabContent">
+        {isLoading ? 'Loading' :<div className="row">  
+        {foodCategory.length > 0 &&
+            foodCategory
+              .filter(item => item.foodcategory.foodcategoryname === distinctCategories[activeTab])
+              .map((menu, index) => (
+                <div className="col-md-3 col-md-3" key={index}>
+                  <div className="menu-box" onClick={() => addProductToCart(menu)}>
+                    <div className="menu-div">
+                      <img src={`/uploads/${menu.photo}`} className="img-fluid foodimg" />
+                      <h6 className="mt-2">{menu.foodmenuname}</h6>
+                      <p>Price: {menu.salesprice}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+ </div> }
+        </div> 
+                            
                            
-                                <li className="nav-item">
-                                  <a className="nav-link " id="home-tab" data-toggle="tab" href="#Coffe" role="tab" aria-controls="home" aria-selected="true">{pos.foodcategoryname}</a>
-                              </li>
+                    </div>
+                    <div className="col-md-5">
+                            <div className="wraper shdw">
+    <div className="row">
+        <div className="col-md-4">
+        <button type="button" onClick={handleOpenTable}   className="btn btn-success w-100 mb-2 p-2">Dine in</button>
+        </div>
+        <div className="col-md-4">
+        <button type="button" onClick={handleTakeaway} className="btn btn-warning w-100 mb-2 p-2">Take way</button>
+        </div>
+        <div className="col-md-4">
+        <button type="button" onClick={hanleDrlivery} className="btn btn-danger w-100 mb-2 p-2">Delivery</button>
+        </div>
+    </div>
+    <div className="row">
+        <div className="col-md-4">
+        <select name="" disabled={showDineinOptions} className="form-control " onChange={handleWaiter}  value={waiters} >
+                             <option >Select Waiter</option>
+                                 {waiter.map((wait,wai) => (
+                                  <option key={wai} value={wait._id}>
+                                      {wait.waitername}
+                                   </option>
+                                 ))}
+                        </select>
+        </div>
+        <div className="col-md-4">
+        <select name="" disabled={showDineinOptions} className="form-control" onChange={handleCustomer}  value={customers}  >
+                             <option >Select Customer</option>
+                                 {customer.map((cust,cus) => (
+                                  <option key={cus} value={cust._id}>
+                                      {cust.customername}
+                                   </option>
+                                 ))}
+                        </select>
+        </div>
+        <div className="col-md-1">
+        <button className="btn btn-primary w-100 mb-2 p-2" onClick={handleOpenModal}>
+        +
+      </button>
+</div>
+<div className="col-md-3">
+<button className="btn btn-primary w-100 mb-2 p-2" onClick={handleOpenTable}>
+        Table
+      </button>
+</div>
 
-                           
+    </div>
+         
+         <div className="table-responsive vh-70">
+             <table className="table">
+                 <thead>
+                   <tr className="thead-light">
+                     <th scope="col">No.</th>
+                     <th scope="col">Name</th>
+                     <th scope="col">U.Price</th>
+                     <th scope="col">Qty</th>
+                       
+                     <th scope="col" className="text-right">Total</th>
+                     <th>Action</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                 { cart ? cart.map((cartProduct, key) => <tr key={key}>
+                      <td>{cartProduct._id}</td>
+                      <td>{cartProduct.foodmenuname}</td>
+                      <td>{cartProduct.salesprice}</td>
+                      <td><button className='btn btn-danger btn-sm' onClick={()=>handleDecrement(cartProduct)}>-</button><input type="text" style={{ width: '20px' }} value={cartProduct.quantity} /><button className='btn btn-success btn-sm' onClick={()=>handleIncrement(cartProduct)}>+</button></td>
+                    
+                      <td>{cartProduct.totalAmount}</td>
+                      <td>
+                        <button className='btn btn-danger btn-sm' onClick={() => removeProduct(cartProduct)}>x</button>
+                      </td>
 
-                        ))
-                    }
-                             
-                              </ul>
-                      </div>
-                   
-                      <div className="col-md-10">
-                          <div className="tab-content" id="myTabContent">
-                              <div className="tab-pane fade show active" id="Coffe" role="tabpanel" aria-labelledby="home-tab">                                          
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png"/>  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>                                           
-                              </div>
-                              <div className="tab-pane fade" id="Tea" role="tabpanel" aria-labelledby="profile-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>                               
-                              </div>
-                              <div className="tab-pane fade" id="Indian" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="South-Indian" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" /> 
-                                                  <h3 className="mt-2">Veg Kurma</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Beef Curry</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Veg Kurma</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Paneer Butter</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Chicken Masala</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Chicken Varutharachathu</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Veg Kurma</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Veg Kurma</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Chicken Varutharachathu  </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Veg Kurma</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="Dosa" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="Chinese" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="Englishbf" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="Sandwich" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="Burgers" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="tab-pane fade" id="Kabayan" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="img/veg.png" />  
-                                                  <h3 className="mt-2">Black Coffee</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Milk Coffee</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Espresso</h3>
-                                              </div>                                                        
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Double Espresso</h3>  
-                                              </div>                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Red Eye</h3> 
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Black Eye</h3>    
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Americano</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Long Black</h3> 
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">                                                          
-                                                  <img src="assets/img/non-veg.png" />  
-                                                  <h3 className="mt-2">Macchiato </h3>                                                            
-                                              </div>                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/veg.png" />  
-                                                  <h3 className="mt-2">Cappuccino</h3>  
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>                                      
-                          </div>
-                      </div>
-                     
-                  </div>      
-              </div>
+                    </tr>)
 
-              <div className="tab-pane" id="delivery" role="tabpanel" aria-labelledby="chicken-tab">
-                  222222222222222222222222   
+                    : 'No Item in Cart'}
+                 
+                  
+                 </tbody>
+               </table>
+         </div>
+
+         <div className="table-responsive">
+             <table className="table">
+                   <tr>                               
+                     <td>Total </td>                                
+                     <th className="text-right">${totalAmount}</th>
+                   </tr>
+                   <tr>                               
+                     <td >Discount  </td>                                
+                     <th className="text-right"></th>
+                   </tr>
+                   <tr>                               
+                     <td>VAT </td>                                
+                     <th className="text-right">${vatAmount}</th>
+                   </tr>
+                   <tr>                               
+                     <th>Grand Total   </th>                                
+                     <th className="text-right">{grandTotal}</th>
+                   </tr>
+                   <tr>                               
+                     <td>
+                        
+                         <div className="custom-control custom-radio custom-control-inline">
+                           <input type="radio" className="custom-control-input" id="defaultInline1" name="inlineDefaultRadiosExample" />
+                           <label className="custom-control-label" htmlFor="defaultInline1">Cash</label>
+                         </div>
+                         
+                       
+                         <div className="custom-control custom-radio custom-control-inline">
+                           <input type="radio" className="custom-control-input" id="defaultInline2" name="inlineDefaultRadiosExample" />
+                           <label className="custom-control-label" htmlFor="defaultInline2">Card</label>
+                         </div> 
+                     </td>                                
+                     <th ></th>
+                   </tr>
+               </table>
+         </div>
+
+         <div className="row">
+             <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Cancel</button></div>
+             <div className="col-lg-6 pl-0"><button type="button" onClick={handlePlaceorder} className="btn btn-warning w-100 mb-2 p-2">Place Order</button></div>
+             <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Hold</button></div>
+             <div className="col-lg-6 pl-0"><button type="button" className="btn btn-success w-100 mb-2 p-2">Quick Pay</button></div>
+         </div>                                      
+     </div>
+                            </div>
+
+                </div>
+            </div>
+
+            
+            <div className="tab-pane" id="delivery" role="tabpanel" aria-labelledby="chicken-tab">
+                 <PosRunningOrder />
               </div>
               <div className="tab-pane" id="pickup" role="tabpanel" aria-labelledby="kiwi-tab">
                   333333333333333           
               </div>
-              <div className="tab-pane" id="running-order" role="tabpanel" aria-labelledby="chicken-tab">
-                  <div className="row"> 
-                      <div className="col-sm-4 col-md-4">
-                          <div className="htmlForm-group has-search mb-3">  
-                              <span className="fa fas-search htmlForm-control-feedback"></span>
-                              <input type="text" className="htmlForm-control" placeholder="Order, Table, waiter search" />
-                          </div>
-                      </div>
-                      <div className="col-sm-6 col-md-8">.
-                      </div>
-                  </div>        
-                  <div className="row">                                                
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>    
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-4 col-md-4">
-                          <div className="menu-box h-175">
-                              <div className="menu-div">                                           
-                                  <h2 className="mt-2">Order: A23001</h2>
-                                  <p className="mb-0">Table: Table Indoor 2</p>
-                                  <p className="mb-0">Waiter: Mohammed</p>
-                                  <p className="mb-0">Customer: Walk in Customer </p>
-                                  <p className="mb-0">Time Count: 40330:58 PM</p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                  </div>  
-              </div>  
-              <div className="tab-pane" id="waiter" role="tabpanel" aria-labelledby="kiwi-tab">
-                  <div className="row">                                                
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                      <div className="col-sm-3 col-md-3">
-                          <div className="menu-box h-175">
-                              <div className="menu-div text-left">                                          
-                                  <h3 className="mt-2">Waiter : 1</h3>
-                                  <p className="mb-0">
-                                      No    :   <strong className="red-color"> 1 </strong> 
-                                      KOT No   :  <strong>15223 </strong>
-                                      Table No    :  <strong>Table  1 </strong>
-                                  </p>
-                              </div>                                                                                                            
-                          </div>
-                      </div>
-                  </div>
-                  <div className="row">                                                
-                      <div className="col-12 mt-5">
-                          <a href="#" className="sub-btn"> Create Invoice & Close</a>           
-                          <a href="#" className="sub-btn"> Modify Order</a>           
-                          <a href="#" className="sub-btn"> Cancel Orders</a>          
-                          <a href="#" className="sub-btn"> Order Details</a>             
-                          <a href="#" className="sub-btn"> Print KOT </a>            
-                          <a href="#" className="sub-btn"> Kitchen Status</a>
-                      </div>
+           
+            
+            </div>
 
-                  </div>                
-              </div>
-              <div className="tab-pane" id="table" role="tabpanel" aria-labelledby="chicken-tab">
-                  <div className="row">
-                      <div className="col-md-2 mb-3">
-                          <ul className="nav nav-pills flex-column shdw-lft" id="myTab" role="tablist">                                        
-                              <li ><h3 className="p-3 red-color mb-0">Tables</h3></li>
-                              <li className="nav-item">
-                                  <a className="nav-link active" id="home-tab" data-toggle="tab" href="#main" role="tab" aria-controls="home" aria-selected="true">Main</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="profile-tab" data-toggle="tab" href="#floor-1" role="tab" aria-controls="profile" aria-selected="false">Floor - 1</a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link" id="contact-tab" data-toggle="tab" href="#floor-2" role="tab" aria-controls="contact" aria-selected="false">Floor - 2</a>
-                              </li>                                                                              
-                          </ul>
-                      </div>
-                     
-                      <div className="col-md-10">
-                          <div className="tab-content" id="myTabContent">
-                              <div className="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="home-tab">                                          
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                                                                            
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                          
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                    
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                                                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                          
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                              
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                  </div>                                           
-                              </div>
-                              <div className="tab-pane fade" id="floor-1" role="tabpanel" aria-labelledby="profile-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                                                                              
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" /> 
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                           
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                     
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                                                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                       
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                  </div>                               
-                              </div>
-                              <div className="tab-pane fade" id="floor-2" role="tabpanel" aria-labelledby="contact-tab">
-                                  <div className="row">                                                
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                                                                               
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                           
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                     
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                                                                                  
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                      
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                          
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                          
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                              
-                                          </div>
-                                      </div>
-                                      <div className="col-sm-3 col-md-3">
-                                          <div className="menu-box">
-                                              <div className="menu-div">
-                                                  <img src="assets/img/table-1.png" />  
-                                                  <h3 className="mt-2">Table Indoor - 1</h3>
-                                              </div>                                                         
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>                                                                              
-                          </div>
-                      </div>
+        </div>
+        </form>
+
+        {/* Add Customer  */}
+        <div
+        className={`modal ${showModal ? 'show' : ''}`}
+        style={{ display: showModal ? 'block' : 'none' }}
+        tabIndex="-1"
+        role="dialog"
+      >
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Add Customer</h5>
+              <button
+                type="button"
+                className="close"
+                data-dismiss="modal"
+                aria-label="Close"
+                onClick={handleCloseModal}
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+            <div className="row">
+       
+      
+           
+             <form className="forms-sample" onSubmit={handleSubmit} >
+                 <div className="row">
                    
-                  </div>
-              </div>                   
+                     <div className="form-group row">
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Name</label>
+                 <div className="col-sm-8">
+                 <input type="text" className="form-control" name="customername" id="exampleInputUsername2" onChange={e =>setValues({...values, customername: e.target.value})} placeholder="Customer Name" />
+                          {errors.customername && <span className="error">{errors.customername}</span>}
+                   
+                 </div>
+               </div>
+
+               <div className="form-group row">
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Email</label>
+                 <div className="col-sm-8">
+                 <input type="text" className="form-control" name="customeremail" id="exampleInputUsername2" onChange={e =>setValues({...values, customeremail: e.target.value})} placeholder="Customer Email" />
+                          {errors.customeremail && <span className="error">{errors.customeremail}</span>}
+                  
+                 </div>
+               </div>
+               <div className="form-group row">
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Mobile</label>
+                 <div className="col-sm-8">
+                 <input type="text" className="form-control" name="customermobile" id="exampleInputUsername2" onChange={e =>setValues({...values, customermobile: e.target.value})} placeholder="Customer Mobile" />
+                          {errors.customermobile && <span className="error">{errors.customermobile}</span>}
+                   
+                 </div>
+               </div>
+               <div className="form-group row">
+                 <label htmlFor="exampleInputUsername2" className="col-sm-4 col-form-label">Customer Address</label>
+                 <div className="col-sm-8">
+                 <textarea className='form-control' name='customeraddress' onChange={e =>setValues({...values, customeraddress: e.target.value})}></textarea>
+                 </div>
+               </div>
+               
+             
+                    
+               
+                 </div>
+            
+                 <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-dismiss="modal"
+                onClick={handleCloseModal}
+              >
+                Close
+              </button>
+              <button type="submit" className="btn btn-gradient-primary me-2">Submit</button>
+            </div>
+              
+             </form>
+           
+
+
+
+
+     </div>
+            </div>
+           
           </div>
-        
+        </div>
       </div>
-  </div>
+      <div
+        className={`modal-backdrop fade ${showModal ? 'show' : ''}`}
+        style={{ display: showModal ? 'block' : 'none' }}
+      ></div>
+
+      
+      {/* Table */}
+             {/* Table */}
+             <div
+        className={`modal ${showTable ? 'show' : ''}`}
+        style={{ display: showTable ? 'block' : 'none' }}
+        tabIndex="-1"
+        role="dialog"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Tables</h5>
+              <button
+                type="button"
+                className="close"
+                data-dismiss="modal"
+                aria-label="Close"
+                onClick={handleCloseTable}
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+            <div className="row">
+       
+            {
+                  modaltable.map((tables) =>(
+               
+                <div className="col-md-3">
+                     <div className="card" onClick={()=>setSelectTable(tables)}>
+                   <img style={containerStyle} src="assets/images/table.png" className="center" alt="logo" />
+                   <h6 className="text-center">
+                   Tablename:{tables.tablename}
+                   </h6>
+                   <h6 className="text-center">
+                   Seatcapacity:{tables.seatcapacity}
+                   </h6>
+                </div>
+                </div>
+                  ))
+            }
+           
+       
 
 
-    
-  </div>
-</div>    
+
+
+             </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-dismiss="modal"
+                onClick={handleCloseTable}
+              >
+                Close
+              </button>
+              <button type="submit" onClick={handleDineinSubmit} className="btn btn-gradient-primary me-2">Submit</button>
+            </div>
+           
           </div>
+        </div>
+      </div>
+      <div
+        className={`modal-backdrop fade ${showTable ? 'show' : ''}`}
+        style={{ display: showTable ? 'block' : 'none' }}
+      ></div>      
 
-          </div>
+        </div>
+      
     )
 
 

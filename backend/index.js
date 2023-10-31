@@ -21,6 +21,7 @@ const foodmenuRouter =require('./routes/foodmenuRoutes');
 const waiterRouter =require('./routes/waiterRoutes');
 const posRouter =require('./routes/posRoutes');
 const customerRouter =require('./routes/customerRoutes');
+//const posRouter =require('./routes/posRoutes');
 
 const PORT =process.env.PORT || 4000;
 dbConnect();

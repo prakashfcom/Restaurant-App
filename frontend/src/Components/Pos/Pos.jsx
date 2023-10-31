@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
 import PosTable from "./posTable";
+import PosRunningOrder from "./posRunningorder";
 
 
 const Pos =() =>{
@@ -15,7 +16,50 @@ const Pos =() =>{
         paddingTop: '84px', // Adjust the value as needed
       };
 
+      const containerStyle = {
+        display: 'block',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        width: '50%',
+      };
+    
+
     const [foodCategory, setFoodcategory] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [waiter, setWaiter] = useState([]);
+    const [waiters,setWaiters] =useState('');
+    const [showTable, setShowTable] = useState(false);
+    const [table, setTable] = useState([]);
+    const [customer, setCustomer] = useState([]);
+    const [customers, setCustomers] = useState('');
+    const [activeTab, setActiveTab] = useState(0);
+  
+    //const distinctCategories = Array.from(new Set(foodCategory.map(item => item.foodcategory.foodcategoryname)));
+    const distinctCategories = [...new Set(foodCategory.map(item => item.foodcategory.foodcategoryname))];
+  
+    const [isLoading, setIsLoading] = useState(false);
+    const [cart, setCart] = useState([]);
+    const [totalAmount, setTotalAmount] = useState(0);
+    const [vatAmount, setTotalVat] = useState(0);
+    
+  const [grandTotal, setGrandTotal] = useState(0);
+  const [options,setOptions] =useState('');
+  const [selectTable,setSelectTable] =useState();
+
+  const [showDineinOptions,setShowDineinOptions] =useState(true);
+  const [placeOrder, setPlaceOrder] = useState({});
+
+// console.log(selectTable);
+// console.log(waiters);
+// console.log(customers);
+    const toastOptions = {
+      autoClose: 400,
+      pauseOnHover: true,
+    }
+    const navigate = useNavigate();
+
+
 
     useEffect(() => {
      
@@ -27,7 +71,7 @@ const Pos =() =>{
         console.error(error);
       });
   }, []);
-  const [showModal, setShowModal] = useState(false);
+
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -46,8 +90,7 @@ const Pos =() =>{
    
 
 })
-const [errors, setErrors] = useState({});
-const navigate = useNavigate();
+
 const handleSubmit =(event) =>{
 
     event.preventDefault();
@@ -91,8 +134,7 @@ const validateForm = (data) => {
   return errors;
 };
 
-const [waiter, setWaiter] = useState([]);
-const [waiters,setWaiters] =useState('');
+
 
   useEffect(() => {
    
@@ -109,8 +151,8 @@ const handleWaiter = (event) => {
     setWaiters(event.target.value);
   
    }
-const [customer, setCustomer] = useState([]);
-const [customers, setCustomers] = useState([]);
+   
+
 useEffect(() => {
    
     axios.get('http://localhost:5000/api/pos/posCustomer')
@@ -126,7 +168,7 @@ const handleCustomer=(event)=>
     setCustomers(event.target.value);
 }
 
-const [table, setTable] = useState([]);
+
 
 useEffect(() => {
    
@@ -150,50 +192,37 @@ useEffect(() => {
   });
 }, []);
 
-const containerStyle = {
-    display: 'block',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: '50%',
-  };
 
-    const [showTable, setShowTable] = useState(false);
 
-  const handleOpenTable =() =>{
+  const handleOpenTable =(e) =>{
     setShowTable(true);
+    //console.log(e);
+    setWaiters("")
+    setCustomers("")
+   setOptions(e.target.innerText);
   }
+  console.log(options);
   const handleCloseTable =() =>{
+    setSelectTable('');
     setShowTable(false);
   }
-  const [activeTab, setActiveTab] = useState(0);
-  
-  //const distinctCategories = Array.from(new Set(foodCategory.map(item => item.foodcategory.foodcategoryname)));
-  const distinctCategories = [...new Set(foodCategory.map(item => item.foodcategory.foodcategoryname))];
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [cart, setCart] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [vatAmount, setTotalVat] = useState(0);
-  const toastOptions = {
-    autoClose: 400,
-    pauseOnHover: true,
-  }
+ 
   const addProductToCart = async(menu) =>{
 
-    let findProductInCart = await cart.find(i=>{
-      return i.id === menu._id
+    let findProductInCart = cart.find(i=>{
+      return i._id === menu._id
     });
-
+    console.info({findProductInCart})
+    let newCart = [];
     if(findProductInCart){
-      let newCart = [];
       let newItem;
 
       cart.forEach(cartItem => {
-        if(cartItem.id === menu._id){
+        if(cartItem._id === menu._id){
           newItem = {
             ...cartItem,
             quantity: cartItem.quantity + 1,
-            totalAmount: cartItem.salesprice * (cartItem.quantity + 1),
+            // totalAmount: cartItem.salesprice * (cartItem.quantity + 1),
            // vatAmount:(cartItem.salesprice * (cartItem.quantity + 1) * cartItem.vat.percentage) / 100,
          
          
@@ -205,7 +234,7 @@ const containerStyle = {
          // console.log(cartItem);
         }
       });
-
+      console.info({newCart})
       setCart(newCart);
      toast(`Added ${newItem.foodmenuname} to cart`,toastOptions)
 
@@ -241,7 +270,6 @@ const containerStyle = {
   //   fetchProducts();
   // },[]);
 
-  const [grandTotal, setGrandTotal] = useState(0);
 
   useEffect(() => {
     let newTotalAmount = 0;
@@ -274,6 +302,9 @@ const containerStyle = {
 
   const handleSubmitPos =(e)=>{
     e.preventDefault();
+   console.log(placeOrder);
+
+    
   }
 
   const handleIncrement = (prod) => {
@@ -294,7 +325,7 @@ const containerStyle = {
     setCart(addQuantity)
   }
 
-  console.log({totalAmount});
+  //console.log({totalAmount});
 
   const handleDecrement = (prod) => {
     const { _id, salesprice} = prod
@@ -312,6 +343,212 @@ const containerStyle = {
     // setTotalAmount(parseInt(totalAmount) - parseInt(salesprice))
     setCart(addQuantity)
   }
+
+  const handleDine =(dine)=>{
+
+  }
+
+  const handleTakeaway =(e) =>{
+    setShowDineinOptions(false)
+    setOptions(e.target.innerText)
+    setWaiters("")
+    setCustomers("")
+  }
+
+  const handleDelivery =(e) =>{
+    setShowDineinOptions(true)
+    setOptions(e.target.innerText)
+    setWaiters("")
+    setCustomers("")
+  }
+
+const handlePlaceorder =(event) =>{
+  event.preventDefault();
+  if (cart.length < 1) {
+    alert("cart is empty")
+  }
+  else if(!options)
+  {
+    alert("Please select options");
+  } else if(options == 'Dine in'){
+
+
+
+  // 
+    if(!waiters && !customers) {
+    alert("please select waiters and customers")
+    } else if(!waiters){
+      alert("Please select waiters")
+    } else if(!customers) {
+      alert("Please select customers")
+    } else {
+
+
+      setPlaceOrder({
+        selectTable, 
+        customers, 
+        waiters, 
+        cart, 
+        options, 
+        totalAmount, 
+        grandTotal, 
+        vatAmount 
+      })
+ console.log({selectTable, customers, waiters, cart, options, totalAmount, grandTotal, vatAmount });
+
+//  const transformedCart = cart.map(item => ({
+//   _id: item._id,
+//   salesprice: item.salesprice,
+//   quantity: item.quantity,
+// }));
+
+//console.log(transformedCart);
+
+
+      var posData = new FormData();
+     
+     posData.append("customers",customers);
+     posData.append("options",options);
+     posData.append("grandTotal",grandTotal);
+
+     for (let i = 0; i < cart.length; i++) {
+      posData.append(
+        `cart[${i}].foodmenuId`,
+       cart[i]._id
+      );
+      posData.append(
+        `cart[${i}].salesprice`,
+        cart[i].salesprice
+      );
+      posData.append(
+        `cart[${i}].quantity`,
+        cart[i].quantity
+      );
+    
+   
+    }
+
+
+    // for (let j = 0; j < selectTable.length; j++) {
+    //   posData.append(
+    //     `selectTable[${i}].tableId`,
+    //     selectTable[i]._id
+    //   );
+
+    
+   
+    // }
+
+
+
+
+  ///posData.append("cart",transformedCart);
+     posData.append("vatAmount",vatAmount);
+     posData.append("total",totalAmount);
+    posData.append("foodoption",options);
+    posData.append("tableId",selectTable._id);
+    posData.append("waiterId",waiters);
+ 
+    
+    
+  
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+  
+       axios
+      .post('http://localhost:5000/api/pos/createpos', posData, config)
+       .then(res => {
+          console.log(res);
+          navigate('/posorder');
+        })
+        .catch(err => console.log(err));
+
+    }
+    //console.info({selectTable, customers, waiters, cart, options, totalAmount, grandTotal, vatAmount })
+
+  } 
+  else {
+   // console.log({selectTable, customers, waiters, cart, options, totalAmount, grandTotal, vatAmount });
+    setPlaceOrder({
+      selectTable, 
+      customers, 
+      waiters, 
+      cart, 
+      options, 
+      totalAmount, 
+      grandTotal, 
+      vatAmount 
+    })
+
+    var posData = new FormData();
+    //posData.append("", photo);
+    posData.append("customers",customers);
+    posData.append("options",options);
+
+   
+    posData.append("grandTotal",grandTotal);
+
+    for (let i = 0; i < cart.length; i++) {
+     posData.append(
+       `cart[${i}].foodmenuId`,
+      cart[i]._id
+     );
+     posData.append(
+       `cart[${i}].salesprice`,
+       cart[i].salesprice
+     );
+     posData.append(
+       `cart[${i}].quantity`,
+       cart[i].quantity
+     );
+   
+  
+   }
+
+
+ ///posData.append("cart",transformedCart);
+    posData.append("vatAmount",vatAmount);
+    posData.append("total",totalAmount);
+   posData.append("foodoption",options);
+   //posData.append("tableId",null);
+   posData.append("waiterId",waiters);
+
+   
+   
+ 
+     const config = {
+       headers: {
+         'Content-Type': 'application/json',
+       }
+     };
+ 
+      axios
+     .post('http://localhost:5000/api/pos/createpos', posData, config)
+      .then(res => {
+         console.log(res);
+         navigate('/posorder');
+       })
+       .catch(err => console.log(err));
+  
+
+
+    //api call
+  }
+
+}
+
+const handleDineinSubmit= () =>{
+    if(selectTable)
+    {
+      setShowTable(false);
+      setShowDineinOptions(false);
+    }
+    
+
+}
 
 
     return (
@@ -332,6 +569,9 @@ const containerStyle = {
               </li>
               <li className="nav-item">
                   <a className="nav-link" data-toggle="tab" href="#pickup" role="tab" aria-controls="kiwi2" aria-selected="false">Kitchen Status</a>
+              </li>
+              <li className="nav-item">
+                  <a className="nav-link" data-toggle="tab" href="#todayorder" role="tab" aria-controls="kiwi2" aria-selected="false">Today Order</a>
               </li>
              
            
@@ -388,18 +628,18 @@ const containerStyle = {
                             <div className="wraper shdw">
     <div className="row">
         <div className="col-md-4">
-        <button type="button" onClick={handleOpenTable} className="btn btn-success w-100 mb-2 p-2">Dine in</button>
+        <button type="button" onClick={handleOpenTable}   className="btn btn-success w-100 mb-2 p-2">Dine in</button>
         </div>
         <div className="col-md-4">
-        <button type="button" className="btn btn-warning w-100 mb-2 p-2">Take way</button>
+        <button type="button" onClick={handleTakeaway} className="btn btn-warning w-100 mb-2 p-2">Take way</button>
         </div>
         <div className="col-md-4">
-        <button type="button" className="btn btn-danger w-100 mb-2 p-2">Delivery</button>
+        <button type="button" onClick={handleDelivery} className="btn btn-danger w-100 mb-2 p-2">Delivery</button>
         </div>
     </div>
     <div className="row">
         <div className="col-md-4">
-        <select name="" className="form-control " onChange={handleWaiter}  value={waiters} >
+        <select name="" disabled={showDineinOptions} className="form-control " onChange={handleWaiter}  value={waiters} >
                              <option >Select Waiter</option>
                                  {waiter.map((wait,wai) => (
                                   <option key={wai} value={wait._id}>
@@ -409,7 +649,7 @@ const containerStyle = {
                         </select>
         </div>
         <div className="col-md-4">
-        <select name="" className="form-control" onChange={handleCustomer}  value={customers}  >
+        <select name="" disabled={showDineinOptions} className="form-control" onChange={handleCustomer}  value={customers}  >
                              <option >Select Customer</option>
                                  {customer.map((cust,cus) => (
                                   <option key={cus} value={cust._id}>
@@ -446,14 +686,15 @@ const containerStyle = {
                  </thead>
                  <tbody>
                  { cart ? cart.map((cartProduct, key) => <tr key={key}>
-                      <td>{cartProduct._id}</td>
+                      {/* <td>{cartProduct._id}</td> */}
+                      <td>{key+1}</td>
                       <td>{cartProduct.foodmenuname}</td>
                       <td>{cartProduct.salesprice}</td>
-                      <td><button onClick={()=>handleDecrement(cartProduct)}>-</button>{cartProduct.quantity}<button onClick={()=>handleIncrement(cartProduct)}>+</button></td>
+                      <td><button className='btn btn-danger btn-sm' onClick={()=>handleDecrement(cartProduct)}>-</button><input type="text" style={{ width: '20px' }} value={cartProduct.quantity} /><button className='btn btn-success btn-sm' onClick={()=>handleIncrement(cartProduct)}>+</button></td>
                     
                       <td>{cartProduct.totalAmount}</td>
                       <td>
-                        <button className='btn btn-danger btn-sm' onClick={() => removeProduct(cartProduct)}>Remove</button>
+                        <button className='btn btn-danger btn-sm' onClick={() => removeProduct(cartProduct)}>x</button>
                       </td>
 
                     </tr>)
@@ -504,7 +745,7 @@ const containerStyle = {
 
          <div className="row">
              <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Cancel</button></div>
-             <div className="col-lg-6 pl-0"><button type="button" className="btn btn-warning w-100 mb-2 p-2">Place Order</button></div>
+             <div className="col-lg-6 pl-0"><button type="button" onClick={handlePlaceorder} className="btn btn-warning w-100 mb-2 p-2">Place Order</button></div>
              <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Hold</button></div>
              <div className="col-lg-6 pl-0"><button type="button" className="btn btn-success w-100 mb-2 p-2">Quick Pay</button></div>
          </div>                                      
@@ -516,7 +757,7 @@ const containerStyle = {
 
             
             <div className="tab-pane" id="delivery" role="tabpanel" aria-labelledby="chicken-tab">
-                  222222222222222222222222   
+                 <PosRunningOrder />
               </div>
               <div className="tab-pane" id="pickup" role="tabpanel" aria-labelledby="kiwi-tab">
                   333333333333333           
@@ -650,10 +891,12 @@ const containerStyle = {
             <div className="row">
        
             {
-                  modaltable.map((tables) =>(
+                  modaltable.map((tables, index) =>(
                
                 <div className="col-md-3">
-                     <div className="card">
+                     <div className="card" onClick={(e)=>{
+                      setSelectTable(tables)
+                      }}>
                    <img style={containerStyle} src="assets/images/table.png" className="center" alt="logo" />
                    <h6 className="text-center">
                    Tablename:{tables.tablename}
@@ -682,7 +925,7 @@ const containerStyle = {
               >
                 Close
               </button>
-              <button type="submit" className="btn btn-gradient-primary me-2">Submit</button>
+              <button type="submit" onClick={handleDineinSubmit} className="btn btn-gradient-primary me-2">Submit</button>
             </div>
            
           </div>
