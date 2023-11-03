@@ -22,6 +22,11 @@ const PosNewOrder =() =>{
     const distinctCategories = [...new Set(foodCategory.map(item => item.foodcategory.foodcategoryname))];
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
+    const [cart, setCart] = useState([]);
+    const [totalAmount, setTotalAmount] = useState(0);
+    const [vatAmount, setTotalVat] = useState(0);
+    const [grandTotal, setGrandTotal] = useState(0);
+    const [options,setOptions] =useState('');
  
     const handleDinein = (e) => {
 
@@ -100,84 +105,214 @@ const PosNewOrder =() =>{
         });
     }, []);
 
+    useEffect(() => {
+     
+        axios.get('http://localhost:5000/api/pos/posfood')
+        .then((response) => {
+          setFoodcategory(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }, []);
+
+    const addProductToCart = async(menu) =>{
+
+        let findProductInCart = cart.find(i=>{
+          return i._id === menu._id
+        });
+        console.info({findProductInCart})
+        let newCart = [];
+        if(findProductInCart){
+          let newItem;
+    
+          cart.forEach(cartItem => {
+            if(cartItem._id === menu._id){
+              newItem = {
+                ...cartItem,
+                quantity: cartItem.quantity + 1,
+                // totalAmount: cartItem.salesprice * (cartItem.quantity + 1),
+               // vatAmount:(cartItem.salesprice * (cartItem.quantity + 1) * cartItem.vat.percentage) / 100,
+             
+             
+              }
+              //console.log(vatAmount);
+              newCart.push(newItem);
+            }else{
+              newCart.push(cartItem);
+             // console.log(cartItem);
+            }
+          });
+          console.info({newCart})
+          setCart(newCart);
+          const toastOptions = {
+            position: 'top-right',
+            autoClose: 3000, // Close the toast after 3 seconds
+            hideProgressBar: false, // Show a progress bar
+            closeOnClick: true, // Close the toast when clicked
+            pauseOnHover: true, // Pause on hover
+          };
+          <ToastContainer />
+         // toast(`Added ${menu.foodmenuname} to the cart`, toastOptions);
+       //  toast(`Added ${newItem.foodmenuname} to cart`,toastOptions)
+    
+        }else{
+          let addingProduct = {
+            ...menu,
+            'quantity': 1,
+            'totalAmount': menu.salesprice,
+          }
+          setCart([...cart, addingProduct]);
+          const toastOptions = {
+            position: 'top-right',
+            autoClose: 3000, // Close the toast after 3 seconds
+            hideProgressBar: false, // Show a progress bar
+            closeOnClick: true, // Close the toast when clicked
+            pauseOnHover: true, // Pause on hover
+          };
+        
+          //toast(`Added ${newItem.foodmenuname} to the cart`, toastOptions);
+          <ToastContainer />
+        }
+    
+    
+      }
+    
+      const removeProduct = async(menu) =>{
+        const newCart =cart.filter(cartItem => cartItem._id !== menu._id);
+        setCart(newCart);
+      }
+    
+      useEffect(() => {
+        let newTotalAmount = 0;
+        let newVatAmount = 0;
+       
+        cart.forEach(icart => {
+    
+          newTotalAmount = newTotalAmount + icart.quantity * parseInt(icart.totalAmount);
+          newVatAmount = parseInt(icart.vat.percentage) != 0 ? newVatAmount + icart.quantity * parseInt(icart.salesprice) * (parseInt(icart.vat.percentage)/100) : newVatAmount;
+        })
+    
+        console.log({newVatAmount});
+        setTotalAmount(newTotalAmount);
+        setTotalVat(newVatAmount.toFixed(2));
+        setGrandTotal((newTotalAmount+newVatAmount).toFixed())
+      },[cart])
+
+      const handleIncrement = (prod) => {
+        const { _id, salesprice} = prod
+        console.log({cart, prod})
+        console.log({prodId: prod["_id"]});
+        let addQuantity = cart.map(item => {
+          if(item["_id"] == prod["_id"]) {
+            console.log(({item}));
+            item.quantity = item.quantity + 1;
+            return item;
+          }
+          return item;
+        })
+        console.log({addQuantity});
+        console.log({totalAmount});
+        // setTotalAmount(parseInt(totalAmount) + parseInt(salesprice))
+        setCart(addQuantity)
+      }
+    
+      //console.log({totalAmount});
+    
+      const handleDecrement = (prod) => {
+        const { _id, salesprice} = prod
+        console.log({cart, prod})
+        console.log({prodId: prod["_id"]});
+        let addQuantity = cart.map(item => {
+          if(item["_id"] == _id) {
+            console.log(({item}));
+            item.quantity = item.quantity > 1 ? item.quantity - 1 : 1;
+            return item;
+          }
+          return item;
+        })
+        console.log({addQuantity});
+        // setTotalAmount(parseInt(totalAmount) - parseInt(salesprice))
+        setCart(addQuantity)
+      }
+    
+
     return (
         <div className="row">
         <div className="col-sm-5 col-lg-4">
 <div className="wraper shdw">
 
 <div className="table-responsive vh-70">
-    <table className="table">
-        <thead>
-          <tr className="thead-light">
-            <th scope="col">No.</th>
-            <th scope="col">Name</th>
-            <th scope="col">U.Price</th>
-            <th scope="col">Qty</th>
-            <th scope="col" className="text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td scope="row">1</td>
-            <td>Veg Kurma</td>
-            <td>10.00</td>
-            <td>1</td>
-            <td className="text-right">10.00</td>
-          </tr>
-          <tr>
-            <td scope="row">2</td>
-            <td>Chicken Masala</td>
-            <td>20.00</td>
-            <td>2</td>
-            <td className="text-right">40.00</td>
-          </tr>
-          <tr>
-            <td scope="row">3</td>
-            <td>Paneer Butter</td>
-            <td>15.00</td>
-            <td>1</td>
-            <td className="text-right">15.00</td>
-          </tr>
-        </tbody>
-      </table>
-</div>
+             <table className="table">
+                 <thead>
+                   <tr className="thead-light">
+                     <th scope="col">No.</th>
+                     <th scope="col">Name</th>
+                     <th scope="col">U.Price</th>
+                     <th scope="col">Qty</th>
+                       
+                     <th scope="col">Total</th>
+                     <th>Action</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                 { cart ? cart.map((cartProduct, key) => <tr key={key}>
+                      {/* <td>{cartProduct._id}</td> */}
+                      <td>{key+1}</td>
+                      <td>{cartProduct.foodmenuname}</td>
+                      <td>{cartProduct.salesprice}</td>
+                      <td><button className='btn btn-danger btn-sm cartminus' onClick={()=>handleDecrement(cartProduct)}>-</button><input type="text" style={{ width: '20px' }} value={cartProduct.quantity} /><button className='btn btn-success btn-sm cartplus' onClick={()=>handleIncrement(cartProduct)}>+</button></td>
+                    
+                      <td>{cartProduct.totalAmount}</td>
+                      <td>
+                        <button className='btn btn-danger btn-sm' onClick={() => removeProduct(cartProduct)}>x</button>
+                      </td>
 
-<div className="table-responsive">
-    <table className="table">
-          <tr>                               
-            <td>Total </td>                                
-            <th className="text-right">65.00</th>
-          </tr>
-          <tr>                               
-            <td >Discount  </td>                                
-            <th className="text-right">05.00</th>
-          </tr>
-          <tr>                               
-            <td>VAT </td>                                
-            <th className="text-right">03.50</th>
-          </tr>
-          <tr>                               
-            <th>Grand Total   </th>                                
-            <th className="text-right">63.50</th>
-          </tr>
-          <tr>                               
-            <td>
-              
-                <div className="custom-control custom-radio custom-control-inline">
-                  <input type="radio" className="custom-control-input" id="defaultInline1" name="inlineDefaultRadiosExample" />
-                  <label className="custom-control-label" for="defaultInline1">Cash</label>
-                </div>
-                
-             
-                <div className="custom-control custom-radio custom-control-inline">
-                  <input type="radio" className="custom-control-input" id="defaultInline2" name="inlineDefaultRadiosExample" />
-                  <label className="custom-control-label" for="defaultInline2">Card</label>
-                </div> 
-            </td>                                
-            <th ></th>
-          </tr>
-      </table>
-</div>
+                    </tr>)
+
+                    : 'No Item in Cart'}
+                 
+                  
+                 </tbody>
+               </table>
+         </div>
+
+         <div className="table-responsive">
+             <table className="table">
+                   <tr>                               
+                     <td>Total </td>                                
+                     <th className="text-right">${totalAmount}</th>
+                   </tr>
+                   <tr>                               
+                     <td >Discount  </td>                                
+                     <th className="text-right"></th>
+                   </tr>
+                   <tr>                               
+                     <td>VAT </td>                                
+                     <th className="text-right">${vatAmount}</th>
+                   </tr>
+                   <tr>                               
+                     <th>Grand Total   </th>                                
+                     <th className="text-right">{grandTotal}</th>
+                   </tr>
+                   <tr>                               
+                     <td>
+                        
+                         <div className="custom-control custom-radio custom-control-inline">
+                           <input type="radio" className="custom-control-input" id="defaultInline1" name="inlineDefaultRadiosExample" />
+                           <label className="custom-control-label" htmlFor="defaultInline1">Cash</label>
+                         </div>
+                         
+                       
+                         <div className="custom-control custom-radio custom-control-inline">
+                           <input type="radio" className="custom-control-input" id="defaultInline2" name="inlineDefaultRadiosExample" />
+                           <label className="custom-control-label" htmlFor="defaultInline2">Card</label>
+                         </div> 
+                     </td>                                
+                     <th ></th>
+                   </tr>
+               </table>
+         </div>
 
 <div className="row">
     <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Cancel</button></div>
@@ -313,8 +448,7 @@ const PosNewOrder =() =>{
                              
                               </ul>  
                             </div>
-                    </div>
-                    <div className="tab-content p-3" id="myTabContents">
+                            <div className="tab-content p-3" id="myTabContents">
         {isLoading ? 'Loading' :<div className="row">  
         {foodCategory.length > 0 &&
             foodCategory
@@ -333,6 +467,8 @@ const PosNewOrder =() =>{
               ))}
  </div> }
         </div> 
+                    </div>
+              
 
                 </div>
 </div>
