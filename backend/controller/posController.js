@@ -90,14 +90,14 @@ const getposFooditems =asyncHandler(async (req,res) =>{
 
 const insertPos =asyncHandler(async(req,res) =>{
   try {
-    const  {customers,options,grandTotal,}  = req.body;
- // console.log(req.body);
+    const  {customers,options,grandTotal,cart,vatAmount,total,foodoption,waiterId,tableId}  = req.body;
+  console.log(req.body);
 
  const sequence = await Pos.findOne({}).sort('-ordernumber'); // Find the latest ID
 
     let nextIdNumber = 'Burp01001023001';
 
-    if (sequence) {
+    if (sequence && sequence.ordernumber) {
       // Extract and increment the numeric part of the latest ID
       const lastIdNumber = sequence.ordernumber;
       const numericPart = lastIdNumber.substring(11); // Extract the numeric part
@@ -108,8 +108,22 @@ const insertPos =asyncHandler(async(req,res) =>{
     // Check if the ID number already exists
     const exists = await Pos.findOne({ ordernumber: nextIdNumber });
 
+    if (exists) {
+      return res.status(400).json({ error: 'ID number already exists' });
+    }
+
     const newEntry = new Pos({ 
       ordernumber: nextIdNumber,
+      customers:customers,
+      options:foodoption,
+      cart:cart,
+      total:total,
+      grandTotal:grandTotal,
+      vatAmount:vatAmount,
+      waiterId:waiterId,
+      tableId:tableId,
+
+
      
     
     });
@@ -201,6 +215,7 @@ const getAllPos =asyncHandler(async(req,res) =>{
       {
         $group: {
           _id: "$_id",
+          ordernumber:{$first: "$ordernumber"},
           options: { $first: "$options" },
           total: { $first: "$total" },
           grandTotal: { $first: "$grandTotal" },
@@ -236,7 +251,54 @@ const getAllPos =asyncHandler(async(req,res) =>{
   } catch (error) {
     throw new Error(error);
   }
+});
+
+const runningOrder =asyncHandler(async(req,res) =>{
+
+  try {
+    const runningorder = await Pos.aggregate([
+      {
+        $match: {
+          paymentstatus: "notpaid"
+        }
+      },
+
+      {
+        $lookup: {
+          from: 'tables',
+          localField: 'tableId',
+          foreignField: '_id',
+          as: 'table',
+        },
+      },
+      {
+        $unwind: '$table',
+      },
+      {
+        $lookup: {
+          from: 'waiters',
+          localField: 'waiterId',
+          foreignField: '_id',
+          as: 'waiter',
+        },
+      },
+      {
+        $unwind: '$waiter',
+      },
+      
+
+    ]);
+    res.json(runningorder);
+    // Use Mongoose to find orders where paymentstatus is "notpaid"
+   // const notPaidOrders = await Pos.find({ paymentstatus: 'notpaid' });
+
+   // res.json(notPaidOrders);
+  } catch (error) {
+    console.error('Error fetching "notpaid" orders:', error);
+  
+  }
+
 })
 
 
-module.exports = {getposCategory,getPosWaiter,getCustomer,getTable,getposFooditems,insertPos,getAllPos};
+module.exports = {getposCategory,getPosWaiter,getCustomer,getTable,getposFooditems,insertPos,getAllPos,runningOrder};

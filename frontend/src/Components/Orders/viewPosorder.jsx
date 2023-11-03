@@ -43,6 +43,7 @@ const ViewPosOrder =() =>{
                     <table className="table table-hover">
                       <thead>
                         <tr>
+                          <th>Order Number</th>
                             <th>Order Option</th>
                           <th>Customer Name</th>
                           <th>Table Name</th>
@@ -59,7 +60,9 @@ const ViewPosOrder =() =>{
                    {
                 posfood.map((order) => (
                     <tr>
+                          <td>{order.ordernumber}</td>
                         <td>{order.options}</td>
+                    
                                <td>{order.customerDetails.customername}</td>
                                <td>{order.tableDetails.tablename}</td>
                                <td>{order.waiterDetails.waitername}</td>

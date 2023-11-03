@@ -34,6 +34,15 @@ ordernumber:{type:String},
     type: mongoose.Schema.ObjectId,
        ref: "Waiter",
   },
+  date: { type: Date, default: Date.now },
+  paymentstatus:{
+    type: String,
+    default: 'notpaid',
+  },
+  hold:{
+    type:String,
+    default:null,
+  }
 
 
 
