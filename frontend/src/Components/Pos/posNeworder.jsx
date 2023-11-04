@@ -9,8 +9,12 @@ const PosNewOrder =() =>{
 
 
     
-    const [isTabEnabled, setTabEnabled] = useState(true);
-    const [isDinein,setEnableDinein] =useState(true);
+    const [tabEnabled, setTabEnabled] = useState({
+      dineIn: false,
+      takeaway: false,
+      delivery: false
+    });
+    const [enableDinein,setEnableDinein] =useState(false);
     const [isEnableTable,setEnableTable] =useState(true);
     // const [isEnableTakeway,setEnableTakeway] =useState(true);
     // const [isEnableDelivery,setEnableDelivery] =useState(true);
@@ -28,32 +32,44 @@ const PosNewOrder =() =>{
     const [vatAmount, setTotalVat] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
     const [options,setOptions] =useState('');
- 
+    const [showWaiters, setShowWaiters] = useState(false);
+    const [showCustomerTab, setShowCustomerTab] = useState(false);
+    const [showFoodItemsTab, setShowFoodItemsTab] = useState(false);
+
     const handleDinein = (e) => {
 
-        setEnableDinein(false);
+      setTabEnabled({
+        dineIn: true,
+        takeaway: false,
+        delivery: false
+      })
+      setEnableDinein(true);
         
-       
+    };
+    
+      const handleWaiter = (details) => {
+
+        // setEnableDinein(true);
+        // setSelectWaiter(e.target.value);
+        // if(selectWaiter)
+        // {
+        //     setTabEnabled(false);
+        //      if (!isTabEnabled) {
+        //      handleDinein();
+        //      }
+        // }
+        // else{
+
+        // }
+    setSelectWaiter(details);
+    setTabEnabled({
+      dineIn: true,
+      takeaway: true,
+      delivery: true
+    })
        
       };
-    
-      const handleWaiter = (e) => {
 
-        setEnableDinein(true);
-        setSelectWaiter(e.target.value);
-        if(selectWaiter)
-        {
-            setTabEnabled(false);
-             if (!isTabEnabled) {
-             handleDinein();
-             }
-        }
-        else{
-
-        }
-    
-       
-      };
       console.log("selectWaiter is not empty:", selectWaiter);
      
 
@@ -64,13 +80,23 @@ const PosNewOrder =() =>{
 
       const handleTakeway =(e) =>
       {
-        setEnableTakeway(false);
-        
+        // setEnableTakeway(false);
+        setTabEnabled({
+          dineIn: false,
+          delivery: false,
+          takeaway: true
+        })
+        setShowFoodItemsTab(true);
       }
 
       const handleDelivery =(e) =>
       {
-
+        setTabEnabled({
+          dineIn: false,
+          delivery: true,
+          takeaway: false
+        })
+        setShowCustomerTab(true);
       }
 
       const handleCustomer =(e) =>
@@ -266,7 +292,7 @@ const PosNewOrder =() =>{
         }
       };
     
-
+      console.info({tabEnabled})
     return (
         <div className="row">
         <div className="col-sm-5 col-lg-4">
@@ -356,93 +382,73 @@ const PosNewOrder =() =>{
 <div className="tbl-h">
                     <ul className="nav nav-tabs nav-justified" role="tablist">
                     <li className="nav-item ">
-                            <a className="nav-link  active" onClick={handleWaiter} data-toggle="tab" href="#waiter" role="tab" aria-controls="kiwi2" aria-selected="false">Waiter</a>
+                            {/* <a className="nav-link  active" onClick={handleWaiter} data-toggle="tab" href="#waiter" role="tab" aria-controls="kiwi2" aria-selected="false">Waiter</a> */}
+                            <a className="nav-link  active" 
+                            onClick={() => {
+                              setSelectWaiter("")
+                              setTabEnabled({
+                                dineIn: false,
+                                takeaway: false,
+                                delivery: false
+                              })
+                              setEnableDinein(false)
+                              setShowCustomerTab(false)
+                              setShowFoodItemsTab(false)
+                              setShowWaiters(true)
+                              }} 
+                              data-toggle="tab" href="#waiter" role="tab" aria-controls="kiwi2" aria-selected="false">Waiter</a>
                         </li> 
-                        { isTabEnabled ? (   
-                        <li className="nav-item">
-                           
-                        </li>
-                    
-                        ):(
-                           <>
-                            <li className="nav-item">
-                            <a className="nav-link " onClick={handleDinein}  data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Dine In</a>
-                        </li>
-                        { isDinein ? (   
-                            <li className="nav-item">
-                           
-                            </li>
-
-                        ): (
-                            <>
-                            <li className="nav-item">
-                            <a className="nav-link "  onClick={handleTable}  data-toggle="tab" href="#table" role="tab" aria-controls="duck2" aria-selected="true">Table</a>
-                        </li>
-                      
-
-                        { isEnableTable ? (
-                            <li className="nav-item"></li>
-                        ):(
-                            <li className="nav-item">
-                            <a className="nav-link "  onClick={handleMenu}  data-toggle="tab" href="#foodmenu" role="tab" aria-controls="duck2" aria-selected="true">Food Menu</a>
-                        </li>
-                        )
-
-                        }
-
-                         </> 
-
-                        ) }
-
-                        {/* <li className="nav-item">
-                            <a className="nav-link "  onClick={handleTakeway}  data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Take way</a>
-                        </li> */}
-                        {/* {
-                            isEnableTakeway ? (
-                                <li className="nav-item">
-                           
-                                </li>
-                                 
-                            ) :(
-                                <li className="nav-item">
-                                <a className="nav-link "  onClick={handleCustomer}  data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Customer</a>
-                            </li>
-                            )
-                        } */}
-
-                        {/* <li className="nav-item">
-                            <a className="nav-link "  onClick={handleDelivery} data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Delivery</a>
-                        </li>
+                        
                         {
-                            isEnableDelivery  ? (
-                                <li className="nav-item"></li>
-                            ):(
-                                <li className="nav-item">
-                                <a className="nav-link "  onClick={handleMenu} data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">food Items</a>
-                            </li>
-                            )
-                        } */}
-                        </>
-                          )}
-                                       
+                        tabEnabled.dineIn && <li className="nav-item">
+                            <a className="nav-link " onClick={handleDinein}  data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Dine In</a>
+                        </li>  
+                        }
+                        {
+                          enableDinein && <li className="nav-item">
+                          <a className="nav-link "  onClick={handleTable}  data-toggle="tab" href="#table" role="tab" aria-controls="duck2" aria-selected="true">Table</a>
+                      </li>
+                        }
+                        {
+                          tabEnabled.delivery && <li className="nav-item">
+                          <a className="nav-link "  onClick={handleDelivery} data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Delivery</a>
+                      </li>
+                        }   
+                        
+                        {
+                          showCustomerTab && <li className="nav-item">
+                          <a className="nav-link "  onClick={handleCustomer}  data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Customer</a>
+                      </li>
+                        }
+                        {
+                          tabEnabled.takeaway && <li className="nav-item">
+                          <a className="nav-link "  onClick={handleTakeway}  data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">Take way</a>
+                      </li>
+                        }
+                        {
+                          showFoodItemsTab && <li className="nav-item">
+                          <a className="nav-link "  onClick={handleMenu} data-toggle="tab" href="#dinein" role="tab" aria-controls="duck2" aria-selected="true">food Items</a>
+                      </li>
+                        }      
                     </ul>
                 </div>
                 <div className="tab-content mt-3">
                      <div className="tab-pane active" id="waiter" role="tabpanel" aria-labelledby="duck-tab">
 
+                        {
+                          showWaiters &&
                            <div className="row">  
                          {
                   waiter.map((wait, index) =>(
                          <div className="col-sm-3 col-md-3">
-                                    <div className="menu-box" onClick={(e)=>{
-                      setSelectWaiter(wait)
-                      }}>
+                                    <div className="menu-box" onClick={() => handleWaiter(wait)}>
                                        
                                          <h6>{wait.waitername}</h6>                                                                                                      
                                     </div>
                                 </div>
                   )) }
                          </div>  
+                        }
                     </div>
                     <div className="tab-pane " id="table" role="tabpanel" aria-labelledby="duck-tab">
                     <div className="row">  
