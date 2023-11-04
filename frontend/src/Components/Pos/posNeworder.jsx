@@ -3,6 +3,7 @@ import { useState,useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 const PosNewOrder =() =>{
 
@@ -81,6 +82,8 @@ const PosNewOrder =() =>{
       {
 
       }
+
+   
 
       //Get The Waiter data
       useEffect(() => {
@@ -235,6 +238,33 @@ const PosNewOrder =() =>{
         // setTotalAmount(parseInt(totalAmount) - parseInt(salesprice))
         setCart(addQuantity)
       }
+
+      // const handlePlaceorder =(event) =>{
+      //   event.preventDefault();
+      //   if (cart.length < 1) {
+      //     alert("cart is empty")
+      //   }
+      //   else if(!options)
+      //   {
+      //     alert("Please select options");
+      //   }
+      // }
+      const handlePlaceorder = (event) => {
+        event.preventDefault();
+        if (cart.length < 1) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Cart is empty',
+            text: 'Please add items to your cart before placing an order.',
+          });
+        } else if (!options) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Options not selected',
+            text: 'Please select options before placing an order.',
+          });
+        }
+      };
     
 
     return (
@@ -316,7 +346,7 @@ const PosNewOrder =() =>{
 
 <div className="row">
     <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Cancel</button></div>
-    <div className="col-lg-6 pl-0"><button type="button" className="btn btn-warning w-100 mb-2 p-2">Place Order</button></div>
+    <div className="col-lg-6 pl-0"><button type="button" onClick={handlePlaceorder} className="btn btn-warning w-100 mb-2 p-2">Place Order</button></div>
     <div className="col-lg-6"><button type="button" className="btn btn-danger w-100 mb-2 p-2">Hold</button></div>
     <div className="col-lg-6 pl-0"><button type="button" className="btn btn-success w-100 mb-2 p-2">Quick Pay</button></div>
 </div>                                      

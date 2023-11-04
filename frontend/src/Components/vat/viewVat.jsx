@@ -5,6 +5,7 @@ import Sidebar from '../layouts/Sidebar';
 import Footer from '../layouts/Footer';
 import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 const ViewVat =() =>{
 
@@ -23,20 +24,47 @@ const ViewVat =() =>{
 
   },[])
 
-  const handleDelete =(id) =>
-  {
-      const confirm =window.confirm('Are You Delete');
-      if(confirm)
-      {
-          axios.delete('http://localhost:5000/api/vat/deleteVat/'+id)
-          .then(res =>{
+  // const handleDelete =(id) =>
+  // {
+  //     const confirm =window.confirm('Are You Delete');
+  //     if(confirm)
+  //     {
+  //         axios.delete('http://localhost:5000/api/vat/deleteVat/'+id)
+  //         .then(res =>{
 
              
-              navigate('/viewfoodcategory');
-              console.log(res);
-          }).catch(err =>console.log(err));
+  //             navigate('/viewfoodcategory');
+  //             console.log(res);
+  //         }).catch(err =>console.log(err));
+  //     }
+  // }
+
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You are about to delete this item.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .delete('http://localhost:5000/api/vat/deleteVat/' + id)
+          .then((res) => {
+            // Handle success
+            navigate('/viewVat');
+            console.log(res);
+          })
+          .catch((err) => {
+            // Handle error
+            console.log(err);
+          });
       }
-  }
+    });
+  };
+  
 
     return (
         <div className="container-scroller">

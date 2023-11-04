@@ -8,12 +8,19 @@ import axios from "axios";
 import { redirect, useNavigate,Link } from "react-router-dom";
 import PosTable from "./posTable";
 import PosRunningOrder from "./posRunningorder";
+import Swal from 'sweetalert2';
 import PosNewOrder from "./posNeworder";
 
 
 const Pos =() =>{
 
-  
+    const showSweetAlert = () => {
+        Swal.fire({
+          title: 'Hello, SweetAlert2!',
+          text: 'This is a SweetAlert2 popup in a React component.',
+          icon: 'success',
+        });
+      };
 
       
     return (
@@ -59,7 +66,7 @@ const Pos =() =>{
                             </div>
 
                             <div className="tab-pane " id="runningorder" role="tabpanel" aria-labelledby="duck-tab">
-                            <h1>Running Order</h1>
+                            <button onClick={showSweetAlert}>Show SweetAlert2</button>
 
                             </div>
 

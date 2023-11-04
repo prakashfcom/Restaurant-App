@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import Swal from 'sweetalert2';
 
 import Login from './Components/userPages/login'
 import Dashboard from './Components/Dashboard/dashboard'
